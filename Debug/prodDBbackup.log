@@ -1,0 +1,16 @@
+﻿  adler32.c
+  crc32.c
+  deflate.c
+  ioapi.c
+  iowin32.c
+  OraFunctions.c
+  parseCmdLine.c
+  prodDBbackup.c
+d:\programming\vsprojects\proddbbackup\proddbbackup\proddbbackup.c(298): warning C4101: i: неиспользованная локальная переменная
+  StringConvert.c
+  threadFunctions.c
+  trees.c
+  zip.c
+  zutil.c
+  Создание кода...
+  prodDBbackup.vcxproj -> D:\Programming\VSProjects\prodDBbackup\Debug\prodDBbackup.exe

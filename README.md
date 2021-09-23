@@ -1,0 +1,2 @@
+# prodDBbackup
+Utility for mass backup of schemes from OracleDB. It works in two streams: the first one runs export tasks in the database one after the other, the second one takes dumps from the server, compressing them on the fly and packing them in zip, and cleans dumps on the Oracle server

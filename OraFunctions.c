@@ -1,6 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 
-//Третья версия API - OCIEnv, OCIError и хндлы сессий передаются в функции в качестве паметров, передаваемые строки - char (UTF8)
+//Третья версия API - OCIEnv, OCIError и хендлы сессий передаются в функции в качестве паметров, передаваемые строки - char (UTF8)
 #include <stdio.h>
 #include <windows.h>
 #include "oci.h"
@@ -40,6 +40,8 @@
 
 #define CONSOLE_ERROR_OUTPUT
 //#define MESSAGEBOX_ERROR_OUTPUT
+
+//#define DEBUG_LOGGING
 
 pOCIEnvCreate OCIEnvCreate;
 
@@ -101,9 +103,6 @@ pOCILobFileExists OCILobFileExists;
 /*Функция получает адреса нужных процедур и функций из oci.dll*/
 BOOL LoadOciFunctions(HMODULE hOCIDll)
 {
-
-	//printf("Loading procedure and functions from oci.dll library...\n");
-	//printf("Pointer to OCIEnvCreate before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIEnvCreate, (unsigned __int64)OCIEnvCreate);
 	OCIEnvCreate = (pOCIEnvCreate)GetProcAddress(hOCIDll,
 		"OCIEnvCreate");
 	if (OCIEnvCreate == NULL) {
@@ -115,10 +114,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCIEnvCreate after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIEnvCreate, (unsigned __int64)OCIEnvCreate);
+	
 
-
-	//printf("Pointer to OCIEnvNlsCreate before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIEnvNlsCreate, (unsigned __int64)OCIEnvNlsCreate);
 	OCIEnvNlsCreate = (pOCIEnvNlsCreate)GetProcAddress(hOCIDll,
 		"OCIEnvNlsCreate");
 	if (OCIEnvNlsCreate == NULL) {
@@ -130,10 +127,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCIEnvNlsCreatee after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIEnvNlsCreate, (unsigned __int64)OCIEnvNlsCreate);
+	
 
-
-	//printf("Pointer to OCITerminate before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCITerminate, (unsigned __int64)OCITerminate);
 	OCITerminate = (pOCITerminate)GetProcAddress(hOCIDll,
 		"OCITerminate");
 	if (OCITerminate == NULL) {
@@ -145,10 +140,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif		
 		return FALSE;
 	}
-	//printf("Pointer to OCITerminate after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCITerminate, (unsigned __int64)OCITerminate);
+	
 
-
-	//printf("Pointer to OCIHandleAlloc before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIHandleAlloc, (unsigned __int64)OCIHandleAlloc);
 	OCIHandleAlloc = (pOCIHandleAlloc)GetProcAddress(hOCIDll,
 		"OCIHandleAlloc");
 	if (OCIHandleAlloc == NULL) {
@@ -160,10 +153,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCIHandleAlloc after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIHandleAlloc, (unsigned __int64)OCIHandleAlloc);
-
-
-	//printf("Pointer to OCIServerAttach before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIServerAttach, (unsigned __int64)OCIServerAttach);
+	
+	
 	OCIServerAttach = (pOCIServerAttach)GetProcAddress(hOCIDll,
 		"OCIServerAttach");
 	if (OCIServerAttach == NULL) {
@@ -175,9 +166,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCIServerAttach after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIServerAttach, (unsigned __int64)OCIServerAttach);
-
-	//printf("Pointer to OCIAttrSet before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIAttrSet, (unsigned __int64)OCIAttrSet);
+	
+	
 	OCIAttrSet = (pOCIAttrSet)GetProcAddress(hOCIDll,
 		"OCIAttrSet");
 	if (OCIAttrSet == NULL) {
@@ -189,9 +179,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCIAttrSet after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIAttrSet, (unsigned __int64)OCIAttrSet);
-
-	//printf("Pointer to OCISessionBegin before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCISessionBegin, (unsigned __int64)OCISessionBegin);
+	
+	
 	OCISessionBegin = (pOCISessionBegin)GetProcAddress(hOCIDll,
 		"OCISessionBegin");
 	if (OCISessionBegin == NULL) {
@@ -203,10 +192,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCISessionBegin after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCISessionBegin, (unsigned __int64)OCISessionBegin);
-
-
-	//printf("Pointer to OCISessionEnd before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCISessionEnd, (unsigned __int64)OCISessionEnd);
+	
+	
 	OCISessionEnd = (pOCISessionEnd)GetProcAddress(hOCIDll,
 		"OCISessionEnd");
 	if (OCISessionEnd == NULL) {
@@ -218,10 +205,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCISessionEnd after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCISessionEnd, (unsigned __int64)OCISessionEnd);
+	
 
-
-	//printf("Pointer to OCIStmtPrepare before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIStmtPrepare, (unsigned __int64)OCIStmtPrepare);
 	OCIStmtPrepare = (pOCIStmtPrepare)GetProcAddress(hOCIDll,
 		"OCIStmtPrepare");
 	if (OCIStmtPrepare == NULL) {
@@ -233,9 +218,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCIStmtPrepare after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIStmtPrepare, (unsigned __int64)OCIStmtPrepare);
+	
 
-	//printf("Pointer to OCIDefineByPos before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIDefineByPos, (unsigned __int64)OCIDefineByPos);
 	OCIDefineByPos = (pOCIDefineByPos)GetProcAddress(hOCIDll,
 		"OCIDefineByPos");
 	if (OCIDefineByPos == NULL) {
@@ -247,9 +231,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCIDefineByPos after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIDefineByPos, (unsigned __int64)OCIDefineByPos);
+	
 
-	//printf("Pointer to OCIStmtExecute before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIStmtExecute, (unsigned __int64)OCIStmtExecute);
 	OCIStmtExecute = (pOCIStmtExecute)GetProcAddress(hOCIDll,
 		"OCIStmtExecute");
 	if (OCIStmtExecute == NULL) {
@@ -261,9 +244,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCIStmtExecute after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIStmtExecute, (unsigned __int64)OCIStmtExecute);
-
-	//printf("Pointer to OCIBindByName before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIBindByName, (unsigned __int64)OCIBindByName);
+	
+	
 	OCIBindByName = (pOCIBindByName)GetProcAddress(hOCIDll,
 		"OCIBindByName");
 	if (OCIBindByName == NULL) {
@@ -275,9 +257,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCIBindByName after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIBindByName, (unsigned __int64)OCIBindByName);
-
-	//printf("Pointer to OCIBindByPos before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIBindByPos, (unsigned __int64)OCIBindByPos);
+	
+	
 	OCIBindByPos = (pOCIBindByPos)GetProcAddress(hOCIDll,
 		"OCIBindByPos");
 	if (OCIBindByPos == NULL) {
@@ -289,9 +270,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCIBindByPos after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIBindByPos, (unsigned __int64)OCIBindByPos);
-
-	//printf("Pointer to OCITransCommit before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCITransCommit, (unsigned __int64)OCITransCommit);
+	
+	
 	OCITransCommit = (pOCITransCommit)GetProcAddress(hOCIDll,
 		"OCITransCommit");
 	if (OCITransCommit == NULL) {
@@ -303,9 +283,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCITransCommit after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCITransCommit, (unsigned __int64)OCITransCommit);
-
-	//printf("Pointer to OCIHandleFree before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIHandleFree, (unsigned __int64)OCIHandleFree);
+	
+	
 	OCIHandleFree = (pOCIHandleFree)GetProcAddress(hOCIDll,
 		"OCIHandleFree");
 	if (OCIHandleFree == NULL) {
@@ -317,9 +296,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCIHandleFree after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIHandleFree, (unsigned __int64)OCIHandleFree);
-
-	//printf("Pointer to OCIServerDetach before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIServerDetach, (unsigned __int64)OCIServerDetach);
+	
+	
 	OCIServerDetach = (pOCIServerDetach)GetProcAddress(hOCIDll,
 		"OCIServerDetach");
 	if (OCIServerDetach == NULL) {
@@ -331,9 +309,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCIServerDetach after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIServerDetach, (unsigned __int64)OCIServerDetach);
-
-	//printf("Pointer to OCIStmtFetch2 before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIStmtFetch2, (unsigned __int64)OCIStmtFetch2);
+	
+	
 	OCIStmtFetch2 = (pOCIStmtFetch2)GetProcAddress(hOCIDll,
 		"OCIStmtFetch2");
 	if (OCIStmtFetch2 == NULL) {
@@ -345,9 +322,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCIStmtFetch2 after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIStmtFetch2, (unsigned __int64)OCIStmtFetch2);
-
-	//printf("Pointer to OCIErrorGet before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIErrorGet, (unsigned __int64)OCIErrorGet);
+	
+	
 	OCIErrorGet = (pOCIErrorGet)GetProcAddress(hOCIDll,
 		"OCIErrorGet");
 	if (OCIErrorGet == NULL) {
@@ -359,9 +335,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCIErrorGet after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIErrorGet, (unsigned __int64)OCIErrorGet);
-
-	//printf("Pointer to OCIRawAllocSize before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIRawAllocSize, (unsigned __int64)OCIRawAllocSize);
+	
+	
 	OCIRawAllocSize = (pOCIRawAllocSize)GetProcAddress(hOCIDll,
 		"OCIRawAllocSize");
 	if (OCIRawAllocSize == NULL) {
@@ -373,9 +348,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCIRawAllocSize after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIRawAllocSize, (unsigned __int64)OCIRawAllocSize);
-
-	//printf("Pointer to OCIRawAssignBytes before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIRawAssignBytes, (unsigned __int64)OCIRawAssignBytes);
+	
+	
 	OCIRawAssignBytes = (pOCIRawAssignBytes)GetProcAddress(hOCIDll,
 		"OCIRawAssignBytes");
 	if (OCIRawAssignBytes == NULL) {
@@ -387,9 +361,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCIRawAssignBytes after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIRawAssignBytes, (unsigned __int64)OCIRawAssignBytes);
-
-	//printf("Pointer to OCILobFileSetName before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCILobFileSetName, (unsigned __int64)OCILobFileSetName);
+	
+	
 	OCILobFileSetName = (pOCILobFileSetName)GetProcAddress(hOCIDll,
 		"OCILobFileSetName");
 	if (OCILobFileSetName == NULL) {
@@ -401,9 +374,9 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCILobFileSetName after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCILobFileSetName, (unsigned __int64)OCILobFileSetName);
+	
 
-	//printf("Pointer to OCIDescriptorAlloc before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIDescriptorAlloc, (unsigned __int64)OCIDescriptorAlloc);
+	
 	OCIDescriptorAlloc = (pOCIDescriptorAlloc)GetProcAddress(hOCIDll,
 		"OCIDescriptorAlloc");
 	if (OCIDescriptorAlloc == NULL) {
@@ -415,9 +388,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCIDescriptorAlloc after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIDescriptorAlloc, (unsigned __int64)OCIDescriptorAlloc);
-
-	//printf("Pointer to OCIDescriptorFree before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIDescriptorFree, (unsigned __int64)OCIDescriptorFree);
+	
+	
 	OCIDescriptorFree = (pOCIDescriptorFree)GetProcAddress(hOCIDll,
 		"OCIDescriptorFree");
 	if (OCIDescriptorFree == NULL) {
@@ -429,9 +401,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCIDescriptorFree after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCIDescriptorFree, (unsigned __int64)OCIDescriptorFree);
-
-	//printf("Pointer to OCILobFileOpen before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCILobFileOpen, (unsigned __int64)OCILobFileOpen);
+	
+	
 	OCILobFileOpen = (pOCILobFileOpen)GetProcAddress(hOCIDll,
 		"OCILobFileOpen");
 	if (OCILobFileOpen == NULL) {
@@ -443,9 +414,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCILobFileOpen after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCILobFileOpen, (unsigned __int64)OCILobFileOpen);
-
-	//printf("Pointer to OCILobFileClose before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCILobFileClose, (unsigned __int64)OCILobFileClose);
+	
+	
 	OCILobFileClose = (pOCILobFileClose)GetProcAddress(hOCIDll,
 		"OCILobFileClose");
 	if (OCILobFileClose == NULL) {
@@ -457,9 +427,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCILobFileClose after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCILobFileClose, (unsigned __int64)OCILobFileClose);
-
-	//printf("Pointer to OCILobGetLength2 before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCILobGetLength2, (unsigned __int64)OCILobGetLength2);
+	
+	
 	OCILobGetLength2 = (pOCILobGetLength2)GetProcAddress(hOCIDll,
 		"OCILobGetLength2");
 	if (OCILobGetLength2 == NULL) {
@@ -471,9 +440,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCILobGetLength2 after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCILobGetLength2, (unsigned __int64)OCILobGetLength2);
+	
 
-	//printf("Pointer to OCILobRead2 before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCILobRead2, (unsigned __int64)OCILobRead2);
 	OCILobRead2 = (pOCILobRead2)GetProcAddress(hOCIDll,
 		"OCILobRead2");
 	if (OCILobRead2 == NULL) {
@@ -485,9 +453,8 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCILobRead2 after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCILobRead2, (unsigned __int64)OCILobRead2);
-
-	//printf("Pointer to OCILobFileExists before GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCILobFileExists, (unsigned __int64)OCILobFileExists);
+	
+	
 	OCILobFileExists = (pOCILobFileExists)GetProcAddress(hOCIDll,
 		"OCILobFileExists");
 	if (OCILobFileExists == NULL) {
@@ -499,8 +466,7 @@ BOOL LoadOciFunctions(HMODULE hOCIDll)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to OCILobFileExists after GetProcAddress is %llX(%llu)\n", (unsigned __int64)OCILobFileExists, (unsigned __int64)OCILobFileExists);
-
+	
 	return TRUE;
 }
 
@@ -594,10 +560,10 @@ BOOL InitOraEnvironment(OCIEnv **hOraEnv, OCIError **hOraErr)
 	OCIEnv *localHandleOraEnv = NULL;
 	OCIError *localHanleOraErr = NULL;
 
-	//printf("Pointer to hOraEnv before initialization is %llX(%llu)\n", (unsigned __int64)hOraEnv, (unsigned __int64)hOraEnv);
-
+	
 	if (OCIEnvCreate((OCIEnv **)&localHandleOraEnv,
-		(ub4)OCI_DEFAULT | OCI_OBJECT,
+		//(ub4)OCI_DEFAULT | OCI_OBJECT,
+		(ub4)OCI_THREADED,
 		(const void  *)0,
 		(const void  * (*)(void  *, size_t))0,
 		(const void  * (*)(void  *, void  *, size_t))0,
@@ -613,10 +579,9 @@ BOOL InitOraEnvironment(OCIEnv **hOraEnv, OCIError **hOraErr)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to hOraEnv after initialization is %llX(%llu)\n", (unsigned __int64)hOraEnv, (unsigned __int64)hOraEnv);
+	
 
 	localHanleOraErr = NULL;
-	//printf("Pointer to Error Handle before initialization is %llX(%llu)\n", (unsigned __int64)hOraErr, (unsigned __int64)hOraErr);
 	if (OCIHandleAlloc((const void *)localHandleOraEnv,
 		(void **)&localHanleOraErr,
 		OCI_HTYPE_ERROR,
@@ -631,7 +596,7 @@ BOOL InitOraEnvironment(OCIEnv **hOraEnv, OCIError **hOraErr)
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to Error Handle after initialization is %llX(%llu)\n", (unsigned __int64)hOraErr, (unsigned __int64)hOraErr);
+	
 
 	*hOraEnv = localHandleOraEnv;
 	*hOraErr = localHanleOraErr;
@@ -674,20 +639,8 @@ BOOL CreateSession(OCIEnv *hOraEnv, OCIError *hOraErr, OCIServer **hOraServer, O
 	OCISvcCtx *localHandleOraSvcCtx;
 	OCISession *localHandleSession;
 
-	//char usernameutf8[32];
-	//char passwordutf8[32];
-	//char dbnameutf8[128];
-	//WideCharToMultiByte(CP_UTF8, 0, username, -1, usernameutf8, 32, NULL, NULL);
-	//printf("CreateSysSession:usernameutf8 - %s\n", usernameutf8);
-	//WideCharToMultiByte(CP_UTF8, 0, password, -1, passwordutf8, 32, NULL, NULL);
-	//printf("CreateSysSession:passwordutf8 - %s\n", passwordutf8);
-	//WideCharToMultiByte(CP_UTF8, 0, dbname, -1, dbnameutf8, 128, NULL, NULL);
-	//printf("%s\n", dbnameutf8);
-	//printf("Bool assysdba - %d\n", assysdba);
 
-
-	localHandleOraServer = NULL;
-	//printf("Pointer to Server Context Handle for sys or system before initialization is %llX(%llu)\n", (unsigned __int64)hOraServerForSYS, (unsigned __int64)hOraServerForSYS);
+	localHandleOraServer = NULL;	
 	if (OCIHandleAlloc((const void *)hOraEnv,
 		(void **)&localHandleOraServer,
 		OCI_HTYPE_SERVER,
@@ -702,7 +655,7 @@ BOOL CreateSession(OCIEnv *hOraEnv, OCIError *hOraErr, OCIServer **hOraServer, O
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to Server Context Handle  for sys or system  after initialization is %llX(%llu)\n", (unsigned __int64)hOraServerForSYS, (unsigned __int64)hOraServerForSYS);
+	
 
 	if (OCIServerAttach(localHandleOraServer, hOraErr, (const OraText *)dbnameutf8, (sb4)strlen(dbnameutf8), (ub4)OCI_DEFAULT) != OCI_SUCCESS)
 	{
@@ -715,8 +668,7 @@ BOOL CreateSession(OCIEnv *hOraEnv, OCIError *hOraErr, OCIServer **hOraServer, O
 		return FALSE;
 	}
 
-	localHandleOraSvcCtx = NULL;
-	//printf("Pointer to Service Context Handle  for sys or system before initialization is %llX(%llu)\n", (unsigned __int64)hOraSvcCtxForSYS, (unsigned __int64)hOraSvcCtxForSYS);
+	localHandleOraSvcCtx = NULL;	
 	if (OCIHandleAlloc((const void *)hOraEnv,
 		(void **)&localHandleOraSvcCtx,
 		OCI_HTYPE_SVCCTX,
@@ -731,7 +683,7 @@ BOOL CreateSession(OCIEnv *hOraEnv, OCIError *hOraErr, OCIServer **hOraServer, O
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to Service Context Handle  for sys or system after initialization is %llX(%llu)\n", (unsigned __int64)hOraSvcCtxForSYS, (unsigned __int64)hOraSvcCtxForSYS);
+	
 
 	if (OCIAttrSet((void *)localHandleOraSvcCtx, OCI_HTYPE_SVCCTX, (void *)localHandleOraServer, (ub4)0, OCI_ATTR_SERVER, (OCIError *)hOraErr) != OCI_SUCCESS)
 	{
@@ -743,9 +695,9 @@ BOOL CreateSession(OCIEnv *hOraEnv, OCIError *hOraErr, OCIServer **hOraServer, O
 #endif
 		return FALSE;
 	}
+	
 	/*Выделяем хендл для сессии Администратора*/
 	localHandleSession = NULL;
-	//printf("Pointer to Sys Session Handle before initialization is %llX(%llu)\n", (unsigned __int64)hSYSSession, (unsigned __int64)hSYSSession);
 	if (OCIHandleAlloc((const void *)hOraEnv, (void **)&localHandleSession, (ub4)OCI_HTYPE_SESSION, (size_t)0, (void **)0))
 	{
 #ifdef MESSAGEBOX_ERROR_OUTPUT
@@ -756,8 +708,7 @@ BOOL CreateSession(OCIEnv *hOraEnv, OCIError *hOraErr, OCIServer **hOraServer, O
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to Sys Session Handle after initialization is %llX(%llu)\n", (unsigned __int64)hSYSSession, (unsigned __int64)hSYSSession);
-
+	
 
 	/*Устанавливаем аттрибут "Имя пользователя"*/
 	if (OCIAttrSet((void *)localHandleSession, (ub4)OCI_HTYPE_SESSION, (void *)usernameutf8, (ub4)strlen(usernameutf8), (ub4)OCI_ATTR_USERNAME, hOraErr) != OCI_SUCCESS)
@@ -785,7 +736,6 @@ BOOL CreateSession(OCIEnv *hOraEnv, OCIError *hOraErr, OCIServer **hOraServer, O
 
 	/*Устанавливаем сессию*/
 	if (OCISessionBegin(localHandleOraSvcCtx, hOraErr, localHandleSession, OCI_CRED_RDBMS, (ub4)(OCI_DEFAULT | (assysdba ? OCI_SYSDBA : 0))) != OCI_SUCCESS)
-		//if (OCISessionBegin(localHandleOraSvcCtx, hOraErr, localHandleSession, OCI_CRED_RDBMS, (ub4)(OCI_DEFAULT | OCI_SYSDBA)) != OCI_SUCCESS)
 	{
 #ifdef MESSAGEBOX_ERROR_OUTPUT
 		MessageBox(MainWindowHandle, L"Не получается установить рабочую сессию. Проверьте правильность пользователя и пароля", L"Ошибка", MB_OK | MB_ICONERROR);
@@ -873,7 +823,6 @@ OCIStmt *GetStringsSetPrepare(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *
 	sword status = 0;
 
 	OCIStmt *hOraPlsqlUserToListStatement = NULL;
-	//printf("Pointer to PlSQLUserExists Statement Handle before initialization is %llX(%llu)\n", (unsigned __int64)hOraPlsqlDeleteStatement, (unsigned __int64)hOraPlsqlDeleteStatement);
 	if (OCIHandleAlloc((const void *)hOraEnv, (void **)&hOraPlsqlUserToListStatement, OCI_HTYPE_STMT, (size_t)0, (void **)0))
 	{
 #ifdef MESSAGEBOX_ERROR_OUTPUT
@@ -884,7 +833,7 @@ OCIStmt *GetStringsSetPrepare(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *
 #endif
 		return NULL;
 	}
-	//printf("Pointer to PlSQLUserExists Statement Handle after initialization is %llX(%llu)\n", (unsigned __int64)hOraPlsqlDeleteStatement, (unsigned __int64)hOraPlsqlDeleteStatement);
+	
 
 	if (OCIStmtPrepare(hOraPlsqlUserToListStatement, hOraErr, (const OraText *)strSelect, (ub4)strlen(strSelect), (ub4)OCI_NTV_SYNTAX, (ub4)OCI_DEFAULT) != OCI_SUCCESS)
 	{
@@ -948,7 +897,6 @@ BOOL GetNumberFromSelect(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraE
 	sword status = 0;
 
 	OCIStmt *hOraPlsqlGetNumberStatement = NULL;
-	//printf("Pointer to PlSQLUserExists Statement Handle before initialization is %llX(%llu)\n", (unsigned __int64)hOraPlsqlDeleteStatement, (unsigned __int64)hOraPlsqlDeleteStatement);
 	if (OCIHandleAlloc((const void *)hOraEnv, (void **)&hOraPlsqlGetNumberStatement, OCI_HTYPE_STMT, (size_t)0, (void **)0))
 	{
 #ifdef MESSAGEBOX_ERROR_OUTPUT
@@ -959,7 +907,7 @@ BOOL GetNumberFromSelect(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraE
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to PlSQLUserExists Statement Handle after initialization is %llX(%llu)\n", (unsigned __int64)hOraPlsqlDeleteStatement, (unsigned __int64)hOraPlsqlDeleteStatement);
+	
 
 	if (OCIStmtPrepare(hOraPlsqlGetNumberStatement, hOraErr, (const OraText *)strSelect, (ub4)strlen(strSelect), (ub4)OCI_NTV_SYNTAX, (ub4)OCI_DEFAULT) != OCI_SUCCESS)
 	{
@@ -1021,7 +969,6 @@ int IsUserExists(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, cons
 	const char plsql_user_exists_statement[] = "select count(*) from dba_users where username like :USERNAME";
 
 	OCIStmt *hOraPlsqlUserExistsStatement = NULL;
-	//printf("Pointer to PlSQLUserExists Statement Handle before initialization is %llX(%llu)\n", (unsigned __int64)hOraPlsqlDeleteStatement, (unsigned __int64)hOraPlsqlDeleteStatement);
 	if (OCIHandleAlloc((const void *)hOraEnv, (void **)&hOraPlsqlUserExistsStatement, OCI_HTYPE_STMT, (size_t)0, (void **)0))
 	{
 #ifdef MESSAGEBOX_ERROR_OUTPUT
@@ -1032,7 +979,7 @@ int IsUserExists(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, cons
 #endif
 		return FALSE;
 	}
-	//printf("Pointer to PlSQLUserExists Statement Handle after initialization is %llX(%llu)\n", (unsigned __int64)hOraPlsqlDeleteStatement, (unsigned __int64)hOraPlsqlDeleteStatement);
+	
 
 	if (OCIStmtPrepare(hOraPlsqlUserExistsStatement, hOraErr, (const OraText *)plsql_user_exists_statement, (ub4)strlen(plsql_user_exists_statement), (ub4)OCI_NTV_SYNTAX, (ub4)OCI_DEFAULT) != OCI_SUCCESS)
 	{
@@ -1105,13 +1052,8 @@ int IsUserExists(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, cons
 int ExecuteExportJob(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, const char *schemautf8, const char *oradirutf8, const char *dumpfilenameutf8, const char *logfilenameutf8)
 {
 
-	//printf("%s\n", schemautf8);
-	//printf("%s\n", oradirutf8);
-	//printf("%s\n", dumpfilenameutf8);
-
 	char schema_expression[50];
 	sprintf(schema_expression, "IN ('%s')", schemautf8);
-	//printf("%s\n", schema_expression);
 	char jobname[30];
 	sword job_name_counter = 1;
 	sword countFromJobs = 1;
@@ -1121,7 +1063,7 @@ int ExecuteExportJob(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, 
 	OCIStmt *hGetCountStmt = NULL;
 	for (job_name_counter = 1; countFromJobs == 1; job_name_counter++)
 	{
-		sprintf(jobname, "OMELET_EXPORT_%d", job_name_counter);
+		sprintf(jobname, "OML_EXP_%s_%d", schemautf8, job_name_counter);
 		sprintf(getJobName, "SELECT count(*) FROM dba_datapump_jobs where job_name LIKE '%s'", jobname);
 
 		hGetCountStmt = NULL;
@@ -1151,18 +1093,17 @@ int ExecuteExportJob(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, 
 		status = OCIStmtExecute(hOraSvcCtx, hGetCountStmt, hOraErr, (ub4)1, (ub4)0, (CONST OCISnapshot *) NULL, (OCISnapshot *)NULL, OCI_DEFAULT);
 		if (status != OCI_SUCCESS && status != OCI_SUCCESS_WITH_INFO)
 		{
+			printf("Application error, ExecuteExportJob function - unable to execute \"%s\"\n", getJobName);
 			checkerr(hOraErr, status);
 			OCIHandleFree(hGetCountStmt, OCI_HTYPE_STMT);
 			free(getJobName);
 			return FALSE;
 		}
 
-		//printf("Is such job name exists - %d\n", countFromJobs);
-
+		
 		OCIHandleFree(hGetCountStmt, OCI_HTYPE_STMT);
 	}
-	//printf("%s\n", jobname);
-	//printf("%s\n", getJobName);
+	
 
 	const char plsql_export_schema_statement[] = "DECLARE\
                     d1 NUMBER;\
@@ -1178,14 +1119,13 @@ int ExecuteExportJob(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, 
                     END;";
 
 	OCIStmt *hOraPlsqlExpSchemaStatement = NULL;
-	//printf("Pointer to PlSQLDeleteStatement Handle before initialization is %llX(%llu)\n", (unsigned __int64)hOraPlsqlDeleteStatement, (unsigned __int64)hOraPlsqlDeleteStatement);
 	if (OCIHandleAlloc((const void *)hOraEnv, (void **)&hOraPlsqlExpSchemaStatement, OCI_HTYPE_STMT, (size_t)0, (void **)0))
 	{
 		printf("Application error, ExecuteExportJob function - can not allocate hOraPlsqlExpSchemaStatement handle\n");
 		free(getJobName);
 		return FALSE;
 	}
-	//printf("Pointer to PlSQLStatement Delete Handle after initialization is %llX(%llu)\n", (unsigned __int64)hOraPlsqlDeleteStatement, (unsigned __int64)hOraPlsqlDeleteStatement);
+	
 
 	if (OCIStmtPrepare(hOraPlsqlExpSchemaStatement, hOraErr, (const OraText *)plsql_export_schema_statement, (ub4)strlen(plsql_export_schema_statement), (ub4)OCI_NTV_SYNTAX, (ub4)OCI_DEFAULT) != OCI_SUCCESS)
 	{
@@ -1207,17 +1147,15 @@ int ExecuteExportJob(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, 
 	OCIBindByName(hOraPlsqlExpSchemaStatement, &bnd5p, hOraErr, (text *)":schema", -1, (void *)schema_expression, (sb4)(strlen(schema_expression) + 1), SQLT_STR, (void *)0, (ub2 *)0, (ub2 *)0, (ub4)0, (ub4 *)0, OCI_DEFAULT);
 
 	
-	//printf("Start export Job\n");
 	status = OCIStmtExecute(hOraSvcCtx, hOraPlsqlExpSchemaStatement, hOraErr, (ub4)1, (ub4)0, (CONST OCISnapshot *) NULL, (OCISnapshot *)NULL, OCI_DEFAULT);
 	if (status != OCI_SUCCESS && status != OCI_SUCCESS_WITH_INFO)
 	{
-		printf("Application error, ExecuteExportJob function - unable to execute datapump export statement.\n");
+		printf("Application error, ExecuteExportJob function - unable to execute datapump export statement, %s\n", schema_expression);
 		checkerr(hOraErr, status);
 		OCIHandleFree(hOraPlsqlExpSchemaStatement, OCI_HTYPE_STMT);
 		free(getJobName);
 		return FALSE;
 	}
-	//printf("Job is done, waiting for other thread\n");
 	
 	OCIHandleFree(hOraPlsqlExpSchemaStatement, OCI_HTYPE_STMT);
 	free(getJobName);
@@ -1301,10 +1239,8 @@ int IsDBLocal(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr)
 
 }
 
+//Функция модифицирована ддя сжатия на лету, возвращает просто текущее время
 uLong filetime(tm_zip *tmzip, uLong *dt)
-//char *f;                /* name of file to get info on */
-//tm_zip *tmzip;             /* return value: access, modific. and creation times */
-//uLong *dt;             /* dostime */
 {
 	FILETIME ft, ftLocal;
 	SYSTEMTIME st;
@@ -1333,39 +1269,24 @@ int check_exist_file(const char* filenameutf8)
 //Отличается от аналогичной функции в datapumpexp тем, что тут нет отображения прогресса скачки файла.
 BOOL GetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, char *fullzipfilenameutf8, char *oradirutf8, char *filenameutf8)
 {
-	//wprintf(L"Got fullzipfilename - %s\n", fullzipfilename);
-	//char *fullzipfilenameutf8 = (char *)HeapAlloc(GetProcessHeap(), 0, 32768);
-	//WideCharToMultiByte(CP_UTF8, 0, fullzipfilename, -1, fullzipfilenameutf8, 32768, NULL, NULL);
-	//char oradirutf8[32];
-	//WideCharToMultiByte(CP_UTF8, 0, oradir, -1, oradirutf8, 32, NULL, NULL);
-	//printf("fullfilenameutf8 - %s\n", fullzipfilenameutf8);
-	//printf("%s\n", oradirutf8);
-	//char *filenameutf8 = (char *)HeapAlloc(GetProcessHeap(), 0, 256);
-	//WideCharToMultiByte(CP_UTF8, 0, orafilename, -1, filenameutf8, 256, NULL, NULL);
-	//printf("%s\n", filenameutf8);
-
+	
 	OCILobLocator *LobLocator;
 	LobLocator = NULL;
 	sword status;
-	//printf("Pointer to LobLocator before initialization is %llX(%llu)\n", (unsigned __int64)LobLocator, (unsigned __int64)LobLocator);
+
 	status = OCIDescriptorAlloc(hOraEnv, (void **)&LobLocator, OCI_DTYPE_FILE, 0, 0);
 	if (status != OCI_SUCCESS && status != OCI_SUCCESS_WITH_INFO)
 	{
 		printf("Application error, GetFileFromDatabaseToZip function - can not allocate LOB file descriptor\n");
 		checkerr(hOraErr, status);
-		//HeapFree(GetProcessHeap(), 0, fullzipfilenameutf8);
-		//HeapFree(GetProcessHeap(), 0, filenameutf8);
 		return FALSE;
 	}
-	//printf("Pointer to LobLocator after initialization is %llX(%llu)\n", (unsigned __int64)LobLocator, (unsigned __int64)LobLocator);
-
+	
 	status = OCILobFileSetName(hOraEnv, hOraErr, &LobLocator, (const text *)oradirutf8, (ub2)strlen(oradirutf8), (const text *)filenameutf8, (ub2)strlen(filenameutf8));
 	if (status != OCI_SUCCESS && status != OCI_SUCCESS_WITH_INFO)
 	{
 		printf("Application error, GetFileFromDatabaseToZip function - can not set filename to LOB file descriptor\n");
 		checkerr(hOraErr, status);
-		//HeapFree(GetProcessHeap(), 0, fullzipfilenameutf8);
-		//HeapFree(GetProcessHeap(), 0, filenameutf8);
 		return FALSE;
 	}
 
@@ -1375,8 +1296,6 @@ BOOL GetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *
 		printf("Application error, GetFileFromDatabaseToZip function - can not open lob file\n");
 		checkerr(hOraErr, status);
 		OCIDescriptorFree(LobLocator, OCI_DTYPE_FILE);
-		//HeapFree(GetProcessHeap(), 0, fullzipfilenameutf8);
-		//HeapFree(GetProcessHeap(), 0, filenameutf8);
 		return FALSE;
 	}
 
@@ -1386,8 +1305,6 @@ BOOL GetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *
 	{
 		OCILobFileClose(hOraSvcCtx, hOraErr, LobLocator);
 		OCIDescriptorFree(LobLocator, OCI_DTYPE_FILE);
-		//HeapFree(GetProcessHeap(), 0, fullzipfilenameutf8);
-		//HeapFree(GetProcessHeap(), 0, filenameutf8);
 		printf("Application error, GetFileFromDatabaseToZip function - LobFile doesn't exists\n");
 		return FALSE;
 	}
@@ -1420,8 +1337,6 @@ BOOL GetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *
 		printf("Application error, GetFileFromDatabaseToZip function - error opening %s\n", fullzipfilenameutf8);
 		OCILobFileClose(hOraSvcCtx, hOraErr, LobLocator);
 		OCIDescriptorFree(LobLocator, OCI_DTYPE_FILE);
-		//HeapFree(GetProcessHeap(), 0, fullzipfilenameutf8);
-		//HeapFree(GetProcessHeap(), 0, filenameutf8);
 		return FALSE;
 	}
 
@@ -1438,18 +1353,15 @@ BOOL GetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *
 		zip64 = 1;
 	}
 
-	zip_err = zipOpenNewFileInZip4_64(zf, filenameutf8, &zi, NULL, 0, NULL, 0, NULL /* comment*/,
+	zip_err = zipOpenNewFileInZip4_64(zf, filenameutf8, &zi, NULL, 0, NULL, 0, NULL,
 		(opt_compress_level != 0) ? Z_DEFLATED : 0, opt_compress_level, 0,
 		-MAX_WBITS, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,
 		password, crcFile, 0, 1 << 11, zip64);
-	//password, crcFile, 63, 1 << 11, zip64);
 	if (zip_err != ZIP_OK)
 	{
 		printf("Application error, GetFileFromDatabaseToZip function - error in opening %s in zipfile\n", filenameutf8);
 		OCILobFileClose(hOraSvcCtx, hOraErr, LobLocator);
 		OCIDescriptorFree(LobLocator, OCI_DTYPE_FILE);
-		//HeapFree(GetProcessHeap(), 0, fullzipfilenameutf8);
-		//HeapFree(GetProcessHeap(), 0, filenameutf8);
 		zipClose(zf, NULL);
 		return FALSE;
 	}
@@ -1458,16 +1370,15 @@ BOOL GetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *
 	oraub8 buflen = 1048576;
 	char *buf = (char *)HeapAlloc(GetProcessHeap(), 0, 1048576);
 	oraub8 offset = 1;
-	//printf("buflen is %llu, offset is %llu\n", buflen, offset);
-	//checkerr(hOraErr, status);
-	//printf("%s transfer progress - %llu%%(%llu/%llu)", filenameutf8, transeredData * 100 / bfilelenght, (unsigned __int64)transeredData, (unsigned __int64)bfilelenght);
+	
 	do
 	{
 		status = OCILobRead2(hOraSvcCtx, hOraErr, LobLocator, &buflen, 0, offset, (void*)buf, buflen, OCI_ONE_PIECE, NULL, NULL, 0, SQLCS_IMPLICIT);
 		if (status == OCI_ERROR)
 		{
-			break;
+			break;	
 		}
+
 		checkerr(hOraErr, status);
 
 		zip_err = zipWriteInFileInZip(zf, buf, (unsigned int)buflen);
@@ -1476,28 +1387,13 @@ BOOL GetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *
 			printf("Application error, GetFileFromDatabaseToZip function - error in writing in the zipfile\n");
 			OCILobFileClose(hOraSvcCtx, hOraErr, LobLocator);
 			OCIDescriptorFree(LobLocator, OCI_DTYPE_FILE);
-			//HeapFree(GetProcessHeap(), 0, fullzipfilenameutf8);
-			//HeapFree(GetProcessHeap(), 0, filenameutf8);
 			HeapFree(GetProcessHeap(), 0, buf);
 			zipCloseFileInZip(zf);
 			zipClose(zf, NULL);
 			return FALSE;
 		}
 
-		//WriteFile(hOut, buf, (DWORD)buflen, &nOut, NULL);
-		/*
-		if (buflen != nOut)
-		{
-			printf("Application error, GetFileFromDatabase function - error writing to file\n");
-			OCILobFileClose(hOraSvcCtxForSYS, hOraErr, LobLocator);
-			OCIDescriptorFree(LobLocator, OCI_DTYPE_FILE);
-			HeapFree(GetProcessHeap(), 0, fullfilenameutf8);
-			HeapFree(GetProcessHeap(), 0, filenameutf8);
-			HeapFree(GetProcessHeap(), 0, buf);
-			CloseHandle(hOut);
-			return FALSE;
-		}
-		*/
+		
 		offset = offset + buflen;
 		transeredData = transeredData + buflen;
 		//printf("\r");
@@ -1512,8 +1408,6 @@ BOOL GetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *
 		printf("Application error, GetFileFromDatabaseToZip function - transfered data differ from bfile size.\n");
 		OCILobFileClose(hOraSvcCtx, hOraErr, LobLocator);
 		OCIDescriptorFree(LobLocator, OCI_DTYPE_FILE);
-		//HeapFree(GetProcessHeap(), 0, fullzipfilenameutf8);
-		//HeapFree(GetProcessHeap(), 0, filenameutf8);
 		HeapFree(GetProcessHeap(), 0, buf);
 		zipCloseFileInZip(zf);
 		zipClose(zf, NULL);
@@ -1523,9 +1417,7 @@ BOOL GetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *
 	OCILobFileClose(hOraSvcCtx, hOraErr, LobLocator);
 	OCIDescriptorFree(LobLocator, OCI_DTYPE_FILE);
 	HeapFree(GetProcessHeap(), 0, buf);
-	//HeapFree(GetProcessHeap(), 0, fullzipfilenameutf8);
-	//HeapFree(GetProcessHeap(), 0, filenameutf8);
-
+	
 	zip_err = zipCloseFileInZip(zf);
 	if (zip_err != ZIP_OK)
 	{
@@ -1548,43 +1440,27 @@ BOOL GetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *
 /*Функция выполняем получение файла с локального сервера оракл в зип-фархив, первый параметр - полное имя зипфайла, второй - имя Оракл директории, третий - имя файла внутри Оракл*/
 BOOL LocalGetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, char *fullzipfilenameutf8, char *oradirutf8, char *filenameutf8)
 {
-	//char *fullzipfilenameutf8 = (char *)HeapAlloc(GetProcessHeap(), 0, 32768);
-	//WideCharToMultiByte(CP_UTF8, 0, fullzipfilename, -1, fullzipfilenameutf8, 32768, NULL, NULL);
-	//char oradirutf8[32];
-	//WideCharToMultiByte(CP_UTF8, 0, oradir, -1, oradirutf8, 32, NULL, NULL);
-	//printf("%s\n", fullzipfilenameutf8);
-	//printf("%s\n", oradirutf8);
-	//char *filenameutf8 = (char *)HeapAlloc(GetProcessHeap(), 0, 256);
-	//WideCharToMultiByte(CP_UTF8, 0, dumpfilename, -1, filenameutf8, 256, NULL, NULL);
-	//printf("%s\n", filenameutf8);
 	//Полный локальный путь к файлу в кодировке UTF8
 	char *orafileutf8 = (char *)HeapAlloc(GetProcessHeap(), 0, 256);
 	//Полный локальный путь к файлу в кодировке UTF16 (UCS2)
 	WCHAR *orafile = (WCHAR *)HeapAlloc(GetProcessHeap(), 0, 512);
-
 
 	sword status;
 
 	const char get_directory_path[] = "select directory_path from all_directories where directory_name LIKE :oradir";
 
 	OCIStmt *hOraGetDirectoryPathStatement = NULL;
-	//printf("Pointer to PlSQLStatement Handle before initialization is %llX(%llu)\n", (unsigned __int64)hOraPlsqlTransferFileStatement, (unsigned __int64)hOraPlsqlTransferFileStatement);
 	if (OCIHandleAlloc((const void *)hOraEnv, (void **)&hOraGetDirectoryPathStatement, OCI_HTYPE_STMT, (size_t)0, (void **)0))
 	{
-		//HeapFree(GetProcessHeap(), 0, fullzipfilenameutf8);
-		//HeapFree(GetProcessHeap(), 0, filenameutf8);
 		HeapFree(GetProcessHeap(), 0, orafileutf8);
 		HeapFree(GetProcessHeap(), 0, orafile);
-		//OCIHandleFree(hOraGetDirectoryPathStatement, OCI_HTYPE_STMT);
 		printf("Application error, LocalGetFileFromDatabaseToZip function - unable to allocate PLSQL Statement handle\n");
 		return FALSE;
 	}
-	//printf("Pointer to PlSQLStatement Handle after initialization is %llX(%llu)\n", (unsigned __int64)hOraPlsqlTransferFileStatement, (unsigned __int64)hOraPlsqlTransferFileStatement);
+	
 
 	if (OCIStmtPrepare(hOraGetDirectoryPathStatement, hOraErr, (const OraText *)get_directory_path, (ub4)strlen(get_directory_path), (ub4)OCI_NTV_SYNTAX, (ub4)OCI_DEFAULT) != OCI_SUCCESS)
 	{
-		//HeapFree(GetProcessHeap(), 0, fullzipfilenameutf8);
-		//HeapFree(GetProcessHeap(), 0, filenameutf8);
 		HeapFree(GetProcessHeap(), 0, orafileutf8);
 		HeapFree(GetProcessHeap(), 0, orafile);
 		OCIHandleFree(hOraGetDirectoryPathStatement, OCI_HTYPE_STMT);
@@ -1599,8 +1475,6 @@ BOOL LocalGetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIEr
 	if (OCIDefineByPos(hOraGetDirectoryPathStatement, &OraDirPath, hOraErr, 1, (void *)orafileutf8, (sword)256, SQLT_STR, (void *)0, (ub2 *)0, (ub2 *)0, OCI_DEFAULT) != OCI_SUCCESS)
 	{
 		printf("Application error, LocalGetFileFromDatabaseToZip function - unable to DefineByPos.\n");
-		//HeapFree(GetProcessHeap(), 0, fullzipfilenameutf8);
-		//HeapFree(GetProcessHeap(), 0, filenameutf8);
 		HeapFree(GetProcessHeap(), 0, orafileutf8);
 		HeapFree(GetProcessHeap(), 0, orafile);
 		OCIHandleFree(hOraGetDirectoryPathStatement, OCI_HTYPE_STMT);
@@ -1610,9 +1484,10 @@ BOOL LocalGetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIEr
 	status = OCIStmtExecute(hOraSvcCtx, hOraGetDirectoryPathStatement, hOraErr, (ub4)1, (ub4)0, (CONST OCISnapshot *) NULL, (OCISnapshot *)NULL, OCI_DEFAULT);
 	if (status != OCI_SUCCESS && status != OCI_SUCCESS_WITH_INFO)
 	{
+#ifdef DEBUG_LOGGING
+		printf("Application error, LocalGetFileFromDatabaseToZip function - unable to execute get_directory_path\n");
+#endif
 		checkerr(hOraErr, status);
-		//HeapFree(GetProcessHeap(), 0, fullzipfilenameutf8);
-		//HeapFree(GetProcessHeap(), 0, filenameutf8);
 		HeapFree(GetProcessHeap(), 0, orafileutf8);
 		HeapFree(GetProcessHeap(), 0, orafile);
 		OCIHandleFree(hOraGetDirectoryPathStatement, OCI_HTYPE_STMT);
@@ -1621,7 +1496,6 @@ BOOL LocalGetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIEr
 	}
 	OCIHandleFree(hOraGetDirectoryPathStatement, OCI_HTYPE_STMT);
 
-	//printf("Oradir is %s\n", orafileutf8);
 	int i;
 	for (i = 0; *(orafileutf8 + i) != 0; i++)
 	{
@@ -1637,14 +1511,11 @@ BOOL LocalGetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIEr
 		*(orafileutf8 + i + 1) = 0;
 	}
 
-	//printf("Oradir is %s\n", orafileutf8);
 	strcat(orafileutf8, filenameutf8);
-	//printf("Orafile is %s\n", orafileutf8);
 	MultiByteToWideChar(CP_UTF8, 0, orafileutf8, -1, orafile, 256);
-	//wprintf(L"Orafile is %s\n", orafile);
-
-	HANDLE hIn;// hOut;
-	DWORD nIn;// nOut;
+	
+	HANDLE hIn;
+	DWORD nIn;
 	const DWORD Bufsize = 1048576;
 	oraub8 transferedData = 0;
 	char *Buffer = (char *)HeapAlloc(GetProcessHeap(), 0, Bufsize);
@@ -1652,9 +1523,6 @@ BOOL LocalGetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIEr
 	hIn = CreateFileW(orafile, GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
 	if (hIn == INVALID_HANDLE_VALUE)
 	{
-		//printf("Unable to open source file to local transfer: %x\n", GetLastError());
-		//HeapFree(GetProcessHeap(), 0, fullzipfilenameutf8);
-		//HeapFree(GetProcessHeap(), 0, filenameutf8);
 		HeapFree(GetProcessHeap(), 0, orafileutf8);
 		HeapFree(GetProcessHeap(), 0, orafile);
 		return FALSE;
@@ -1662,10 +1530,7 @@ BOOL LocalGetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIEr
 	LARGE_INTEGER FileSize;
 	if (!GetFileSizeEx(hIn, &FileSize))
 	{
-		//printf("Unable to get FileSize. GetFileSizeEx Error: %x\n", GetLastError());
 		CloseHandle(hIn);
-		//HeapFree(GetProcessHeap(), 0, fullzipfilenameutf8);
-		//HeapFree(GetProcessHeap(), 0, filenameutf8);
 		HeapFree(GetProcessHeap(), 0, orafileutf8);
 		HeapFree(GetProcessHeap(), 0, orafile);
 		return FALSE;
@@ -1694,10 +1559,7 @@ BOOL LocalGetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIEr
 	zf = zipOpen64(fullzipfilenameutf8, opt_overwrite);
 	if (zf == NULL)
 	{
-		//printf("Unable to open target zip file to local transfer\n");
 		CloseHandle(hIn);
-		//HeapFree(GetProcessHeap(), 0, fullzipfilenameutf8);
-		//HeapFree(GetProcessHeap(), 0, filenameutf8);
 		HeapFree(GetProcessHeap(), 0, orafileutf8);
 		HeapFree(GetProcessHeap(), 0, orafile);
 		return FALSE;
@@ -1715,17 +1577,13 @@ BOOL LocalGetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIEr
 		zip64 = 1;
 	}
 
-	zip_err = zipOpenNewFileInZip4_64(zf, filenameutf8, &zi, NULL, 0, NULL, 0, NULL /* comment*/,
+	zip_err = zipOpenNewFileInZip4_64(zf, filenameutf8, &zi, NULL, 0, NULL, 0, NULL,
 		(opt_compress_level != 0) ? Z_DEFLATED : 0, opt_compress_level, 0,
 		-MAX_WBITS, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,
 		password, crcFile, 0, 1 << 11, zip64);
-	//password, crcFile, 63, 1 << 11, zip64);
 	if (zip_err != ZIP_OK)
 	{
-		//printf("Application error, LocalGetFileFromDatabaseToZip function - error in opening %s in zipfile\n", filenameutf8);
 		CloseHandle(hIn);
-		//HeapFree(GetProcessHeap(), 0, fullzipfilenameutf8);
-		//HeapFree(GetProcessHeap(), 0, filenameutf8);
 		HeapFree(GetProcessHeap(), 0, orafileutf8);
 		HeapFree(GetProcessHeap(), 0, orafile);
 		zipClose(zf, NULL);
@@ -1741,8 +1599,6 @@ BOOL LocalGetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIEr
 		{
 			printf("Application error, LocalGetFileFromDatabaseToZip function - error in writing in the zipfile\n");
 			CloseHandle(hIn);
-			//HeapFree(GetProcessHeap(), 0, fullzipfilenameutf8);
-			//HeapFree(GetProcessHeap(), 0, filenameutf8);
 			HeapFree(GetProcessHeap(), 0, orafileutf8);
 			HeapFree(GetProcessHeap(), 0, orafile);
 			HeapFree(GetProcessHeap(), 0, Buffer);
@@ -1751,20 +1607,7 @@ BOOL LocalGetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIEr
 			return FALSE;
 		}
 
-		/*
-		WriteFile(hOut, Buffer, nIn, &nOut, NULL);
-		if (nIn != nOut)
-		{
-			printf("Error writing to file: %x\n", GetLastError());
-			CloseHandle(hIn);
-			CloseHandle(hOut);
-			HeapFree(GetProcessHeap(), 0, fullfilenameutf8);
-			HeapFree(GetProcessHeap(), 0, filenameutf8);
-			HeapFree(GetProcessHeap(), 0, orafileutf8);
-			HeapFree(GetProcessHeap(), 0, orafile);
-			return FALSE;
-		}
-		*/
+		
 		transferedData = transferedData + nIn;
 		//printf("\r");
 		//printf("%s transfer progress - %llu%%(%llu/%llu)", filenameutf8, transferedData * 100 / (unsigned __int64)FileSize.QuadPart, (unsigned __int64)transferedData, (unsigned __int64)FileSize.QuadPart);
@@ -1776,8 +1619,6 @@ BOOL LocalGetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIEr
 
 	CloseHandle(hIn);
 
-	//HeapFree(GetProcessHeap(), 0, fullzipfilenameutf8);
-	//HeapFree(GetProcessHeap(), 0, filenameutf8);
 	HeapFree(GetProcessHeap(), 0, orafileutf8);
 	HeapFree(GetProcessHeap(), 0, orafile);
 	HeapFree(GetProcessHeap(), 0, Buffer);
@@ -1785,7 +1626,6 @@ BOOL LocalGetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIEr
 	zip_err = zipCloseFileInZip(zf);
 	if (zip_err != ZIP_OK)
 	{
-		//printf("Application error, LocalGetFileFromDatabaseToZip function - error in closing entry in the zipfile\n");
 		zipClose(zf, NULL);
 		return FALSE;
 	}
@@ -1793,13 +1633,11 @@ BOOL LocalGetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIEr
 	zip_err = zipClose(zf, NULL);
 	if (zip_err != ZIP_OK)
 	{
-		//printf("Application error, LocalGetFileFromDatabaseToZip function - error in closing zipfile\n");
 		return FALSE;
 	}
 
 	if (FileSize.QuadPart != transferedData)
 	{
-		//printf("Filesizes is different, transfer error\n");
 		return FALSE;
 	}
 
@@ -1809,12 +1647,6 @@ BOOL LocalGetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIEr
 /*Функция удаляет файл из Оракл каталога*/
 BOOL DeleteFileFromOradir(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, char *oradirutf8, char *filenameutf8)
 {
-	//char oradirutf8[32];
-	//WideCharToMultiByte(CP_UTF8, 0, oradir, -1, oradirutf8, 32, NULL, NULL);
-	//printf("%s\n", oradirutf8);
-	//char *filenameutf8 = (char *)HeapAlloc(GetProcessHeap(), 0, 256);
-	//WideCharToMultiByte(CP_UTF8, 0, dumpfilename, -1, filenameutf8, 256, NULL, NULL);
-	//printf("%s\n", filenameutf8);
 	sword status;
 
 	const char plsql_delete_file_statement[] = "BEGIN\
@@ -1823,13 +1655,12 @@ BOOL DeleteFileFromOradir(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOra
 
 
 	OCIStmt *hOraPlsqlDeleteStatement = NULL;
-	//printf("Pointer to PlSQLDeleteStatement Handle before initialization is %llX(%llu)\n", (unsigned __int64)hOraPlsqlDeleteStatement, (unsigned __int64)hOraPlsqlDeleteStatement);
 	if (OCIHandleAlloc((const void *)hOraEnv, (void **)&hOraPlsqlDeleteStatement, OCI_HTYPE_STMT, (size_t)0, (void **)0))
 	{
 		printf("Application error, DeleteFileFromOradir function - can not allocate hOraPlsqlDeleteStatement handle\n");
 		return FALSE;
 	}
-	//printf("Pointer to PlSQLStatement Delete Handle after initialization is %llX(%llu)\n", (unsigned __int64)hOraPlsqlDeleteStatement, (unsigned __int64)hOraPlsqlDeleteStatement);
+	
 
 	if (OCIStmtPrepare(hOraPlsqlDeleteStatement, hOraErr, (const OraText *)plsql_delete_file_statement, (ub4)strlen(plsql_delete_file_statement), (ub4)OCI_NTV_SYNTAX, (ub4)OCI_DEFAULT) != OCI_SUCCESS)
 	{

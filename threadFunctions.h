@@ -6,6 +6,11 @@ typedef struct export_struct
 	OCISvcCtx * hOraSvcCtx;
 	OCIEnv * hOraEnv;
 	OCIError *hOraErr;
+	char * datapumpDir;
+	int threadNumber;
+	CRITICAL_SECTION * ExportCriticalSection;
+	int * CriticalError;
+
 } EXPORT_STUCTURE, *P_EXPORT_STUCTURE;
 
 typedef struct recieve_struct
@@ -14,7 +19,11 @@ typedef struct recieve_struct
 	OCISvcCtx * hOraSvcCtx;
 	OCIEnv * hOraEnv;
 	OCIError *hOraErr;
-	char * dumpDir;
+	int threadNumber;
+	char *dumpDir;
+	CRITICAL_SECTION * ReceiveCriticalSection;
+	int * CriticalError;
+
 } RECIEVE_STUCTURE, *P_RECIEVE_STUCTURE;
 
 //Функция обратного вызова для запуска в отдельном потоке, идет по списку схем и запускает по очереди задачи экпорта

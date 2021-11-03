@@ -5,7 +5,8 @@
 BOOL parseCmdLine(int argc, char* argv[], char *login, char *pass, char *dblink, char **dumpdir, char **select)
 {
 	const char *usage = "Usage: prodDBbackup login/pass@dblink dumpdir=C:\\dir\\to\\backup [schemaset=\"Select ....\"]\n\
-prodDBbackup version - 1.0.0";
+for multithread export create PRODDBBACKUP_DIR_1, PRODDBBACKUP_DIR_2... directories on your DB server\n\
+prodDBbackup version - 1.1.2";
 
 	if (argc < 3 || argc > 4)
 	{

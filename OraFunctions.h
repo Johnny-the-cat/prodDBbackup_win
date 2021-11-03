@@ -9,9 +9,23 @@
 #define NOT_PROCESSED 0
 #define EXPORT_COMPLETE 1
 #define EXPORT_ERROR 3
+#define EXPORT_RUNNING 4
+#define RECEIVE_COMPLETE 1
+#define RECEIVE_ERROR 3
+#define RECEIVE_RUNNING 4
+#define RECEIVE_SKIP 5
 
 #define LOCALDB 1
 #define REMOTEDB 2
+
+typedef struct datapump_dir_row
+{
+	//порядковый номер каталога
+	int serialNumber;
+	//Имя датапамп директории для дампа.
+	char datapumpDirName[32];
+
+} DATAPUMP_DIR_ROW_STRUCTURE, *P_DATAPUMP_DIR_ROW_STRUCTURE;
 
 typedef struct export_schema_row
 {
@@ -19,8 +33,12 @@ typedef struct export_schema_row
 	char schema[32];
 	//Имя файла без расширения.
 	char filename [256];
-	//Флаг состояния схемы - 0 - необработана, EXPORT_COMPLETE - Экспорт завершен, USER_NOT_EXISTS - пользователя не существует, пропускаем.
-	int status;
+	//Имя датапамп директории для дампа.
+	char datapumpDirName[32];
+	//Флаг состояния схемы - 0 - необработана (NOT_PROCESSED), EXPORT_COMPLETE - Экспорт завершен, USER_NOT_EXISTS - пользователя не существует, пропускаем, EXPORT_RUNNING - идет в настоящий момент, EXPORT_ERROR - ошибка экспорта.
+	int exportStatus;
+	//Флаг состояния получения - 0 - необработана, RECEIVE_RUNNING - идет получение, RECEIVE_COMPLETE - файлы получены, RECEIVE_ERROR - ошибка получения, RECEIVE_SKIP - пропущен
+	int receiveStatus;
 
 } SCHEMA_ROW_STUCTURE, *P_SCHEMA_ROW_STUCTURE;
 

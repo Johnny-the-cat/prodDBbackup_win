@@ -17,7 +17,7 @@ char *winACPstr2utf8str(char *str);
 
 //Конвертация строки Windows ANSI Code Page (кодировка по умолчанию для русского языка - Win1251) в UTF8
 //Под строку выделяется буфер, после использования его нужно освободить.
-char *winACPstr2utf8strBufAlloc(char *str);
+char *winACPstr2utf8strBufAlloc(const char *str);
 
 //для виндовс - конвертирует строки в WCHAR и делает DeleteFileW. Возвращает TRUE или FALSE
 int utf8_fdelete(const char *pFilename);

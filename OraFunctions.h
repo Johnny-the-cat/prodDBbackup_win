@@ -1,6 +1,7 @@
 #pragma once
 
 #include <windows.h>
+#include <stdbool.h>
 #include "oratypes.h"
 #include "oci.h"
 
@@ -49,14 +50,14 @@ typedef struct export_schema_list
 
 } SCHEMA_LIST_STUCTURE, *P_SCHEMA_LIST_STUCTURE;
 
-BOOL LoadOciFunctions(HMODULE hOCIDll);
+bool LoadOciFunctions(HMODULE hOCIDll);
 
 void checkerr(OCIError *errhp, sword status);
 
-BOOL InitOraEnvironment(OCIEnv **hOraEnv, OCIError **hOraErr);
+bool InitOraEnvironment(OCIEnv **hOraEnv, OCIError **hOraErr);
 void CloseOraEnvironment(OCIEnv *hOraEnv, OCIError *hOraErr);
 
-BOOL CreateSession(OCIEnv *hOraEnv, OCIError *hOraErr, OCIServer **hOraServer, OCISvcCtx **hOraSvcCtx, OCISession **hOraSession, char *usernameutf8, char *passwordutf8, char *dbnameutf8, BOOL assysdba);
+bool CreateSession(OCIEnv *hOraEnv, OCIError *hOraErr, OCIServer **hOraServer, OCISvcCtx **hOraSvcCtx, OCISession **hOraSession, char *usernameutf8, char *passwordutf8, char *dbnameutf8, bool assysdba);
 void CloseSession(OCIError *hOraErr, OCIServer *hOraServer, OCISvcCtx *hOraSvcCtx, OCISession *hOraSession);
 
 //В функцию передаем запрос, результатом которого должен быть набор строк (один столбец), strResult - указатель на буфер приема, sizeStrResult - размер буфера.
@@ -68,7 +69,7 @@ sword GetStringsSetFetch(OCIStmt *hOraPlsqlUserToListStatement, OCIError *hOraEr
 void FreeSqlHandle(OCIStmt *hOraPlsqlUserToListStatement);
 
 //Функция для получения из базы одного целочисленного числа
-BOOL GetNumberFromSelect(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, const char * strSelect, long long *Result);
+bool GetNumberFromSelect(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, const char * strSelect, long long *Result);
 //Функция проверки существования пользователя,  возвращает USER_EXISTS либо USER_NOT_EXISTS
 int IsUserExists(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, const char *schema);
 
@@ -81,11 +82,11 @@ int IsDBLocal(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr);
 
 //Функция выполняем получение файла с удаленного сервера оракл со сжатием на лету, четвертый параметр - полное имя зипфайла, пятый - имя Оракл директории, шестой - имя файла внутри Оракл
 //Отличается от аналогичной функции в datapumpexp тем, что тут нет отображения прогресса скачки файла.
-BOOL GetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, char *fullzipfilenameutf8, char *oradirutf8, char *filenameutf8);
+bool GetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, char *fullzipfilenameutf8, char *oradirutf8, char *filenameutf8);
 
 /*Функция выполняем получение файла с локального сервера оракл в зип-фархив, четвертый параметр - полное имя зипфайла, пятый - имя Оракл директории, шестой - имя файла внутри Оракл*/
 //Отличается от аналогичной функции в datapumpexp тем, что тут нет отображения прогресса скачки файла.
-BOOL LocalGetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, char *fullzipfilenameutf8, char *oradirutf8, char *filenameutf8);
+bool LocalGetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, char *fullzipfilenameutf8, char *oradirutf8, char *filenameutf8);
 
 /*Функция удаляет файл из Оракл каталога*/
-BOOL DeleteFileFromOradir(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, char *oradirutf8, char *filenameutf8);
+bool DeleteFileFromOradir(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, char *oradirutf8, char *filenameutf8);

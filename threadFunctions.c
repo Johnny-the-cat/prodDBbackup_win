@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <windows.h>
 #include "OraFunctions.h"
 #include "threadFunctions.h"
@@ -132,7 +133,7 @@ unsigned WINAPI RecieveThread(void * ppArgs)
 	char logname[256];
 	char zipname[256];
 	char dbdirname[32];
-	BOOL recieve_error = FALSE;
+	bool recieve_error = FALSE;
 
 	
 	long long i;
@@ -200,7 +201,7 @@ unsigned WINAPI RecieveThread(void * ppArgs)
 		startTime = time(NULL);
 		if ((RecieveStr->ExportList->pSchemaRows)[i].exportStatus == USER_NOT_EXISTS)
 		{
-			(RecieveStr->ExportList->pSchemaRows)[i].exportStatus = RECEIVE_SKIP;
+			(RecieveStr->ExportList->pSchemaRows)[i].receiveStatus = RECEIVE_SKIP;
 			GetLocalTime(&recieveThreadTimeStruct);
 			printf("%02d.%02d.%04d %02d:%02d:%02d [receiveThread_%d] - Пользователя %s нет в базе, пропускаем\n", recieveThreadTimeStruct.wDay, recieveThreadTimeStruct.wMonth, recieveThreadTimeStruct.wYear,
 				recieveThreadTimeStruct.wHour, recieveThreadTimeStruct.wMinute, recieveThreadTimeStruct.wSecond, RecieveStr->threadNumber, (RecieveStr->ExportList->pSchemaRows)[i].schema);
@@ -208,7 +209,7 @@ unsigned WINAPI RecieveThread(void * ppArgs)
 		}
 		else if ((RecieveStr->ExportList->pSchemaRows)[i].exportStatus == EXPORT_ERROR)
 		{
-			(RecieveStr->ExportList->pSchemaRows)[i].exportStatus = RECEIVE_SKIP;
+			(RecieveStr->ExportList->pSchemaRows)[i].receiveStatus = RECEIVE_SKIP;
 			GetLocalTime(&recieveThreadTimeStruct);
 			printf("%02d.%02d.%04d %02d:%02d:%02d [receiveThread_%d] - Экспорт %s завершился с ошибкой, пропускаем\n", recieveThreadTimeStruct.wDay, recieveThreadTimeStruct.wMonth, recieveThreadTimeStruct.wYear,
 				recieveThreadTimeStruct.wHour, recieveThreadTimeStruct.wMinute, recieveThreadTimeStruct.wSecond, RecieveStr->threadNumber, (RecieveStr->ExportList->pSchemaRows)[i].schema);
@@ -236,6 +237,7 @@ unsigned WINAPI RecieveThread(void * ppArgs)
 						zipname, dbdirname, dumpname))
 					{
 						recieve_error = TRUE;
+						(RecieveStr->ExportList->pSchemaRows)[i].receiveStatus = RECEIVE_ERROR;
 						GetLocalTime(&recieveThreadTimeStruct);
 						printf("%02d.%02d.%04d %02d:%02d:%02d [receiveThread_%d] - Дамп схемы %s получить не удалось\n", recieveThreadTimeStruct.wDay, recieveThreadTimeStruct.wMonth, recieveThreadTimeStruct.wYear,
 							recieveThreadTimeStruct.wHour, recieveThreadTimeStruct.wMinute, recieveThreadTimeStruct.wSecond, RecieveStr->threadNumber, (RecieveStr->ExportList->pSchemaRows)[i].schema);
@@ -248,6 +250,7 @@ unsigned WINAPI RecieveThread(void * ppArgs)
 					zipname, dbdirname, dumpname))
 				{
 					recieve_error = TRUE;
+					(RecieveStr->ExportList->pSchemaRows)[i].receiveStatus = RECEIVE_ERROR;
 					GetLocalTime(&recieveThreadTimeStruct);
 					printf("%02d.%02d.%04d %02d:%02d:%02d [receiveThread_%d] - Дамп схемы %s получить не удалось\n", recieveThreadTimeStruct.wDay, recieveThreadTimeStruct.wMonth, recieveThreadTimeStruct.wYear,
 						recieveThreadTimeStruct.wHour, recieveThreadTimeStruct.wMinute, recieveThreadTimeStruct.wSecond, RecieveStr->threadNumber, (RecieveStr->ExportList->pSchemaRows)[i].schema);
@@ -258,6 +261,7 @@ unsigned WINAPI RecieveThread(void * ppArgs)
 				zipname, dbdirname, logname))
 			{
 				recieve_error = TRUE;
+				(RecieveStr->ExportList->pSchemaRows)[i].receiveStatus = RECEIVE_ERROR;
 				GetLocalTime(&recieveThreadTimeStruct);
 				printf("%02d.%02d.%04d %02d:%02d:%02d [receiveThread_%d] - Лог экспорта схемы %s получить не удалось\n", recieveThreadTimeStruct.wDay, recieveThreadTimeStruct.wMonth, recieveThreadTimeStruct.wYear,
 					recieveThreadTimeStruct.wHour, recieveThreadTimeStruct.wMinute, recieveThreadTimeStruct.wSecond, RecieveStr->threadNumber, (RecieveStr->ExportList->pSchemaRows)[i].schema);
@@ -266,6 +270,7 @@ unsigned WINAPI RecieveThread(void * ppArgs)
 			
 			if (recieve_error == FALSE)
 			{
+				(RecieveStr->ExportList->pSchemaRows)[i].receiveStatus = RECEIVE_COMPLETE;
 				DeleteFileFromOradir(RecieveStr->hOraSvcCtx, RecieveStr->hOraEnv, RecieveStr->hOraErr, dbdirname, dumpname);
 				DeleteFileFromOradir(RecieveStr->hOraSvcCtx, RecieveStr->hOraEnv, RecieveStr->hOraErr, dbdirname, logname);
 			}

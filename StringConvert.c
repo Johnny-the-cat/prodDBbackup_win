@@ -111,7 +111,7 @@ char *winACPstr2utf8str(char *str)
 	return str;
 }
 
-char *winACPstr2utf8strBufAlloc(char *str)
+char *winACPstr2utf8strBufAlloc(const char *str)
 {
 	int len = strlen(str) + 1;
 	wchar_t *wstr = (wchar_t *)malloc(len * sizeof(wchar_t));

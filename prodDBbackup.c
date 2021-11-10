@@ -1,17 +1,30 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <windows.h>
 #include <time.h>
 #include "OraFunctions.h"
 #include "StringConvert.h"
 #include "threadFunctions.h"
 #include <process.h>
+#include "reportFunctions.h"
 
-BOOL parseCmdLine(int argc, char* argv[], char *login, char *pass, char *dblink, char **dumpdir, char **select);
+bool parseCmdLine(int argc, char* argv[], char *login, char *pass, char *dblink, char **dumpdir, char **select,  char **jsonreportfile);
 
 int main(int argc, char* argv[])
 {
+	UINT CurrentCP = GetConsoleCP();
+	SetConsoleOutputCP(65001);
+
+	//Время начала работы программы в формате C-time
+	time_t startTime;
+	startTime = time(NULL);
+
+	//Время начала работы программы в человеческом формате
+	SYSTEMTIME startTimeStruct;
+	GetLocalTime(&startTimeStruct);
+	
 	//Логин для подключения. Получаем из аргументов командной строки. Так как он должен быть на английском, считаем, что он в кодировке UTF8, без преобразований.
 	char login[32] = { 0 };
 	//Пароль для подключения. Получаем из аргументов командной строки. Так как он должен быть на английском, считаем, что он в кодировке UTF8, без преобразований.
@@ -22,12 +35,19 @@ int main(int argc, char* argv[])
 	char *dumpdirACP = NULL;
 	//Опциональный запрос для получения списка схем. Национальных символов не предполагается, считаем, что он в кодировке UTF8, без преобразований
 	char *select = NULL;
+	//Полное имя JSON отчета, может содержать национальные символы, необходимо преобразование.
+	char *jsonreportfileACP = NULL;
 	
 	//Получаем необходимые данные из аргументов командной строки
-	parseCmdLine(argc, argv, login, pass, dblinkACP, &dumpdirACP, &select);
+	parseCmdLine(argc, argv, login, pass, dblinkACP, &dumpdirACP, &select, &jsonreportfileACP);
 
 	//printf("%s\n", dblinkACP);
 	//printf("%s\n", dumpdirACP);
+	if (jsonreportfileACP != NULL)
+	{
+		printf("jsonreportfileACP - %s\n", jsonreportfileACP);
+	}
+	
 	
 	
 	//-------------------Секция конвертации строк, содержащих национальные символы в строки UTF-8
@@ -992,6 +1012,16 @@ int main(int argc, char* argv[])
 	FreeLibrary(hOCIDll);
 	
 
+	//Формируем json файл отчета, если указан параметр jsonreportfile=
+	if (jsonreportfileACP != NULL)
+	{
+		GetLocalTime(&mainThreadTimeStruct);
+		printf("%02d.%02d.%04d %02d:%02d:%02d [mainThread] - Формируем файл отчета\n", mainThreadTimeStruct.wDay, mainThreadTimeStruct.wMonth, mainThreadTimeStruct.wYear,
+			mainThreadTimeStruct.wHour, mainThreadTimeStruct.wMinute, mainThreadTimeStruct.wSecond);
+		generateJSON(startTime, startTimeStruct, listSchemaToExport, jsonreportfileACP);
+	}
+
+
 	//GetLocalTime(&mainThreadTimeStruct);
 	//printf("%02d.%02d.%04d %02d:%02d:%02d [mainThread] - Освобождаем выделенную память\n", mainThreadTimeStruct.wDay, mainThreadTimeStruct.wMonth, mainThreadTimeStruct.wYear,
 	//	mainThreadTimeStruct.wHour, mainThreadTimeStruct.wMinute, mainThreadTimeStruct.wSecond);
@@ -1016,5 +1046,7 @@ int main(int argc, char* argv[])
 	GetLocalTime(&mainThreadTimeStruct);
 	printf("%02d.%02d.%04d %02d:%02d:%02d [mainThread] - Завершаем работу приложения\n", mainThreadTimeStruct.wDay, mainThreadTimeStruct.wMonth, mainThreadTimeStruct.wYear,
 		mainThreadTimeStruct.wHour, mainThreadTimeStruct.wMinute, mainThreadTimeStruct.wSecond);
+	
+	SetConsoleOutputCP(CurrentCP);
 	return 0;
 }

@@ -2,6 +2,7 @@
 
 //Третья версия API - OCIEnv, OCIError и хендлы сессий передаются в функции в качестве паметров, передаваемые строки - char (UTF8)
 #include <stdio.h>
+#include <stdbool.h>
 #include <windows.h>
 #include "oci.h"
 #include "oratypes.h"
@@ -101,7 +102,7 @@ pOCILobFileExists OCILobFileExists;
 
 
 /*Функция получает адреса нужных процедур и функций из oci.dll*/
-BOOL LoadOciFunctions(HMODULE hOCIDll)
+bool LoadOciFunctions(HMODULE hOCIDll)
 {
 	OCIEnvCreate = (pOCIEnvCreate)GetProcAddress(hOCIDll,
 		"OCIEnvCreate");
@@ -555,7 +556,7 @@ void checkerr(OCIError *errhp, sword status)
 
 
 /*Функция инициализирует окружение OCIEnv и OCIError*/
-BOOL InitOraEnvironment(OCIEnv **hOraEnv, OCIError **hOraErr)
+bool InitOraEnvironment(OCIEnv **hOraEnv, OCIError **hOraErr)
 {
 	OCIEnv *localHandleOraEnv = NULL;
 	OCIError *localHanleOraErr = NULL;
@@ -633,7 +634,7 @@ void CloseOraEnvironment(OCIEnv *hOraEnv, OCIError *hOraErr)
 
 
 /*Инициируем OCISvcCtx, OCIServer, OCISession и подулючаемся к серверу*/
-BOOL CreateSession(OCIEnv *hOraEnv, OCIError *hOraErr, OCIServer **hOraServer, OCISvcCtx **hOraSvcCtx, OCISession **hOraSession, char *usernameutf8, char *passwordutf8, char *dbnameutf8, BOOL assysdba)
+bool CreateSession(OCIEnv *hOraEnv, OCIError *hOraErr, OCIServer **hOraServer, OCISvcCtx **hOraSvcCtx, OCISession **hOraSession, char *usernameutf8, char *passwordutf8, char *dbnameutf8, bool assysdba)
 {
 	OCIServer *localHandleOraServer;
 	OCISvcCtx *localHandleOraSvcCtx;
@@ -892,7 +893,7 @@ void FreeSqlHandle(OCIStmt *hOraPlsqlUserToListStatement)
 }
 
 
-BOOL GetNumberFromSelect(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, const char * strSelect, long long *Result)
+bool GetNumberFromSelect(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, const char * strSelect, long long *Result)
 {
 	sword status = 0;
 
@@ -1267,7 +1268,7 @@ int check_exist_file(const char* filenameutf8)
 
 //Функция выполняем получение файла с удаленного сервера оракл со сжатием на лету, первый параметр - полное имя зипфайла, второй - имя Оракл директории, третий - имя файла внутри Оракл
 //Отличается от аналогичной функции в datapumpexp тем, что тут нет отображения прогресса скачки файла.
-BOOL GetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, char *fullzipfilenameutf8, char *oradirutf8, char *filenameutf8)
+bool GetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, char *fullzipfilenameutf8, char *oradirutf8, char *filenameutf8)
 {
 	
 	OCILobLocator *LobLocator;
@@ -1438,7 +1439,7 @@ BOOL GetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *
 
 
 /*Функция выполняем получение файла с локального сервера оракл в зип-фархив, первый параметр - полное имя зипфайла, второй - имя Оракл директории, третий - имя файла внутри Оракл*/
-BOOL LocalGetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, char *fullzipfilenameutf8, char *oradirutf8, char *filenameutf8)
+bool LocalGetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, char *fullzipfilenameutf8, char *oradirutf8, char *filenameutf8)
 {
 	//Полный локальный путь к файлу в кодировке UTF8
 	char *orafileutf8 = (char *)HeapAlloc(GetProcessHeap(), 0, 256);
@@ -1645,7 +1646,7 @@ BOOL LocalGetFileFromDatabaseToZip(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIEr
 }
 
 /*Функция удаляет файл из Оракл каталога*/
-BOOL DeleteFileFromOradir(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, char *oradirutf8, char *filenameutf8)
+bool DeleteFileFromOradir(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, char *oradirutf8, char *filenameutf8)
 {
 	sword status;
 

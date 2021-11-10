@@ -1,14 +1,16 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include <windows.h>
 
-BOOL parseCmdLine(int argc, char* argv[], char *login, char *pass, char *dblink, char **dumpdir, char **select)
+bool parseCmdLine(int argc, char* argv[], char *login, char *pass, char *dblink, char **dumpdir, char **select,  char **jsonreportfile)
 {
-	const char *usage = "Usage: prodDBbackup login/pass@dblink dumpdir=C:\\dir\\to\\backup [schemaset=\"Select ....\"]\n\
+	const char *usage = "Usage: prodDBbackup login/pass@dblink dumpdir=C:\\dir\\to\\backup [ schemaset=\"Select ....\" \
+jsonreportfile=C:\\path\\to\\file ]\n\
 for multithread export create PRODDBBACKUP_DIR_1, PRODDBBACKUP_DIR_2... directories on your DB server\n\
-prodDBbackup version - 1.1.2";
+prodDBbackup version - 1.2.0";
 
-	if (argc < 3 || argc > 4)
+	if (argc < 3 || argc > 5)
 	{
 		printf("%s\n", usage);
 		exit(EXIT_FAILURE);
@@ -69,9 +71,11 @@ prodDBbackup version - 1.1.2";
 
 	strncpy_s(dblink, 128, atpointer + 1, connectlinelen - (atpointer - argv[1]) - 1);
 
-	BOOL gotdumpdir = FALSE;
+	bool gotdumpdir = FALSE;
 
-	BOOL gotselect = FALSE;
+	bool gotselect = FALSE;
+
+	bool gotjsonreportfile = FALSE;
 
 	for (i = 2; i < argc; i++)
 	{
@@ -113,6 +117,25 @@ prodDBbackup version - 1.1.2";
 			}
 		}
 		
+		else if (strstr(argv[i], "jsonreportfile=") == argv[i])
+		{
+			if (gotjsonreportfile == FALSE)
+			{
+				*jsonreportfile = argv[i] + (int)strlen("jsonreportfile=");
+				if (strlen(*jsonreportfile) != 0)
+				{
+					gotjsonreportfile = TRUE;
+					continue;
+				}
+			}
+			else
+			{
+				printf("Argument \"jsonreportfile\" is alredy got\n");
+				printf("%s\n", usage);
+				exit(EXIT_FAILURE);
+			}
+		}
+
 		else
 		{
 			printf("Unknown argument\n");

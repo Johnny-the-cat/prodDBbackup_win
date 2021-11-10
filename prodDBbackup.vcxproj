@@ -125,6 +125,7 @@
     <ClCompile Include="OraFunctions.c" />
     <ClCompile Include="parseCmdLine.c" />
     <ClCompile Include="prodDBbackup.c" />
+    <ClCompile Include="reportFunctions.c" />
     <ClCompile Include="StringConvert.c" />
     <ClCompile Include="threadFunctions.c" />
     <ClCompile Include="trees.c" />
@@ -146,6 +147,7 @@
     <ClInclude Include="OraFunctions.h" />
     <ClInclude Include="oratypes.h" />
     <ClInclude Include="orl.h" />
+    <ClInclude Include="reportFunctions.h" />
     <ClInclude Include="StringConvert.h" />
     <ClInclude Include="threadFunctions.h" />
     <ClInclude Include="trees.h" />

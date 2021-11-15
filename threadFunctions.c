@@ -93,6 +93,7 @@ unsigned WINAPI ExportThread(void * ppArgs)
 		sprintf(logname, "%s.log", (ExpStr->ExportList->pSchemaRows)[i].filename);
 
 		strcpy((ExpStr->ExportList->pSchemaRows)[i].datapumpDirName, ExpStr->datapumpDir);
+
 		
 		GetLocalTime(&exportThreadTimeStruct);
 		printf("%02d.%02d.%04d %02d:%02d:%02d [exportThread_%d] - Запускаем экспорт %s в каталог %s\n", exportThreadTimeStruct.wDay, exportThreadTimeStruct.wMonth, exportThreadTimeStruct.wYear,

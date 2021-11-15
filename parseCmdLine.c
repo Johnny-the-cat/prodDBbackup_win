@@ -8,7 +8,7 @@ bool parseCmdLine(int argc, char* argv[], char *login, char *pass, char *dblink,
 	const char *usage = "Usage: prodDBbackup login/pass@dblink dumpdir=C:\\dir\\to\\backup [ schemaset=\"Select ....\" \
 jsonreportfile=C:\\path\\to\\file ]\n\
 for multithread export create PRODDBBACKUP_DIR_1, PRODDBBACKUP_DIR_2... directories on your DB server\n\
-prodDBbackup version - 1.2.1";
+prodDBbackup version - 1.2.2";
 
 	if (argc < 3 || argc > 5)
 	{

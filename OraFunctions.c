@@ -1064,7 +1064,7 @@ int ExecuteExportJob(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, 
 	OCIStmt *hGetCountStmt = NULL;
 	for (job_name_counter = 1; countFromJobs == 1; job_name_counter++)
 	{
-		sprintf(jobname, "OML_EXP_%s_%d", schemautf8, job_name_counter);
+		snprintf(jobname, 30, "OML_EXP_%s_%d", schemautf8, job_name_counter);
 		sprintf(getJobName, "SELECT count(*) FROM dba_datapump_jobs where job_name LIKE '%s'", jobname);
 
 		hGetCountStmt = NULL;

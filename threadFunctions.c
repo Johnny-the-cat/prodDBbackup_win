@@ -78,6 +78,16 @@ unsigned WINAPI ExportThread(void * ppArgs)
 		sprintf((ExpStr->ExportList->pSchemaRows)[i].filename, "%s_%02d_%02d_%04d_%02d_%02d_%02d", (ExpStr->ExportList->pSchemaRows)[i].schema,
 			exportThreadTimeStruct.wDay, exportThreadTimeStruct.wMonth, exportThreadTimeStruct.wYear, 
 			exportThreadTimeStruct.wHour, exportThreadTimeStruct.wMinute, exportThreadTimeStruct.wSecond);
+
+		//Убираем из имени файла символы '\', '/' и '%'
+		int tempcounter;
+		for (tempcounter = 0; (ExpStr->ExportList->pSchemaRows)[i].filename[tempcounter] != 0; tempcounter++)
+		{
+			if ((ExpStr->ExportList->pSchemaRows)[i].filename[tempcounter] == '\\' || (ExpStr->ExportList->pSchemaRows)[i].filename[tempcounter] == '/' || (ExpStr->ExportList->pSchemaRows)[i].filename[tempcounter] == '%')
+			{
+				(ExpStr->ExportList->pSchemaRows)[i].filename[tempcounter] = '_';
+			}
+		}
 		
 		sprintf(dumpname, "%s.dmp", (ExpStr->ExportList->pSchemaRows)[i].filename);
 		sprintf(logname, "%s.log", (ExpStr->ExportList->pSchemaRows)[i].filename);
@@ -110,7 +120,7 @@ unsigned WINAPI ExportThread(void * ppArgs)
 
 
 	GetLocalTime(&exportThreadTimeStruct);
-	printf("%02d.%02d.%04d %02d:%02d:%02d [exportThread_%d] - Поток экспорта звершает работу\n", exportThreadTimeStruct.wDay, exportThreadTimeStruct.wMonth, exportThreadTimeStruct.wYear,
+	printf("%02d.%02d.%04d %02d:%02d:%02d [exportThread_%d] - Поток экспорта завершает работу\n", exportThreadTimeStruct.wDay, exportThreadTimeStruct.wMonth, exportThreadTimeStruct.wYear,
 		exportThreadTimeStruct.wHour, exportThreadTimeStruct.wMinute, exportThreadTimeStruct.wSecond, ExpStr->threadNumber);
 	_endthreadex(EXIT_SUCCESS);
 	return EXIT_SUCCESS;

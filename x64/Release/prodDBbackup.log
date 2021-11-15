@@ -5,8 +5,9 @@
   iowin32.c
   OraFunctions.c
   parseCmdLine.c
-d:\programming\vsprojects\proddbbackup\proddbbackup\parsecmdline.c(21): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+d:\programming\vsprojects\proddbbackup\proddbbackup\parsecmdline.c(24): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
   prodDBbackup.c
+  reportFunctions.c
   StringConvert.c
 d:\programming\vsprojects\proddbbackup\proddbbackup\stringconvert.c(8): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
 d:\programming\vsprojects\proddbbackup\proddbbackup\stringconvert.c(63): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
@@ -17,6 +18,6 @@ d:\programming\vsprojects\proddbbackup\proddbbackup\stringconvert.c(116): warnin
   zip.c
   zutil.c
   Создание кода
-  All 129 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  All 133 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   Создание кода завершено
   prodDBbackup.vcxproj -> D:\Programming\VSProjects\prodDBbackup\x64\Release\prodDBbackup.exe

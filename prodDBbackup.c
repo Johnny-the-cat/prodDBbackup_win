@@ -43,10 +43,10 @@ int main(int argc, char* argv[])
 
 	//printf("%s\n", dblinkACP);
 	//printf("%s\n", dumpdirACP);
-	if (jsonreportfileACP != NULL)
-	{
-		printf("jsonreportfileACP - %s\n", jsonreportfileACP);
-	}
+	//if (jsonreportfileACP != NULL)
+	//{
+	//	printf("jsonreportfileACP - %s\n", jsonreportfileACP);
+	//}
 	
 	
 	

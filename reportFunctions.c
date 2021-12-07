@@ -26,6 +26,7 @@ bool generateJSON(time_t startCTime, SYSTEMTIME startSystemTime, P_SCHEMA_LIST_S
 	bool success = FALSE;
 	bool statusIncorrect = FALSE;
 	int backupSuccessCount = 0;
+	int exportWarnings = 0;
 	int exportErrors = 0;
 	int receiveErrors = 0;
 	int deletedWhileBackup = 0;
@@ -40,8 +41,17 @@ bool generateJSON(time_t startCTime, SYSTEMTIME startSystemTime, P_SCHEMA_LIST_S
 		{
 			backupSuccessCount++;
 		}
+		else if ((ExportList->pSchemaRows)[i].exportStatus == EXPORT_WARNING && (ExportList->pSchemaRows)[i].receiveStatus == RECEIVE_COMPLETE)
+		{
+			exportWarnings++;
+		}
 		else if ((ExportList->pSchemaRows)[i].exportStatus == EXPORT_COMPLETE && (ExportList->pSchemaRows)[i].receiveStatus == RECEIVE_ERROR)
 		{
+			receiveErrors++;
+		}
+		else if ((ExportList->pSchemaRows)[i].exportStatus == EXPORT_WARNING && (ExportList->pSchemaRows)[i].receiveStatus == RECEIVE_ERROR)
+		{
+			exportWarnings++;
 			receiveErrors++;
 		}
 		else if ((ExportList->pSchemaRows)[i].exportStatus == USER_NOT_EXISTS && (ExportList->pSchemaRows)[i].receiveStatus == RECEIVE_SKIP)
@@ -63,7 +73,7 @@ bool generateJSON(time_t startCTime, SYSTEMTIME startSystemTime, P_SCHEMA_LIST_S
 	
 	}
 
-	if (statusIncorrect == TRUE || exportErrors != 0 || receiveErrors != 0)
+	if (statusIncorrect == TRUE || exportErrors != 0 || receiveErrors != 0 || exportWarnings != 0)
 	{
 		success = FALSE;
 	}
@@ -83,6 +93,7 @@ bool generateJSON(time_t startCTime, SYSTEMTIME startSystemTime, P_SCHEMA_LIST_S
 	fprintf(pJSON_file, "  \"success\":\"%s\",\n", success ? "true" : "false");
 	fprintf(pJSON_file, "  \"schemaTotalCount\":%d,\n", ExportList->schemaCount);
 	fprintf(pJSON_file, "  \"backupSuccessCount\":%d,\n", backupSuccessCount);
+	fprintf(pJSON_file, "  \"exportWarnings\":%d,\n", exportWarnings);
 	fprintf(pJSON_file, "  \"exportErrors\":%d,\n", exportErrors);
 	fprintf(pJSON_file, "  \"receiveErrors\":%d,\n", receiveErrors);
 	fprintf(pJSON_file, "  \"deletedWhileBackup\":%d\n", deletedWhileBackup);

@@ -1165,6 +1165,195 @@ int ExecuteExportJob(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, 
 }
 
 
+//Эта версия функции ExecuteExportJob, в которой мы отслеживаем сообщения об ошибках.
+//Отдельный поток для отслеживания прогресса на запускается, мы просто запускаем экспорт и ждем его завершения
+int ExecuteExportJobErrorTracking(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, const char *schemautf8, const char *oradirutf8, const char *dumpfilenameutf8, const char *logfilenameutf8, int *errorCount, bool consistent)
+{
+
+	char schema_expression[50];
+	sprintf(schema_expression, "IN ('%s')", schemautf8);
+	char jobname[30];
+	sword job_name_counter = 1;
+	sword countFromJobs = 1;
+	sword status = 0;
+	int exportErrorCount = 0;
+
+	char *getJobName = (char *)malloc(128);
+	OCIStmt *hGetCountStmt = NULL;
+	for (job_name_counter = 1; countFromJobs == 1; job_name_counter++)
+	{
+		snprintf(jobname, 30, "OML_EXP_%s_%d", schemautf8, job_name_counter);
+		sprintf(getJobName, "SELECT count(*) FROM dba_datapump_jobs where job_name LIKE '%s'", jobname);
+
+		hGetCountStmt = NULL;
+		if (OCIHandleAlloc((const void *)hOraEnv, (void **)&hGetCountStmt, OCI_HTYPE_STMT, (size_t)0, (void **)0))
+		{
+			printf("Application error, ExecuteExportJobErrorTracking function - can not allocate hGetCountStmt handle\n");
+			free(getJobName);
+			return FALSE;
+		}
+
+		if (OCIStmtPrepare(hGetCountStmt, hOraErr, (const OraText *)getJobName, (ub4)strlen(getJobName), (ub4)OCI_NTV_SYNTAX, (ub4)OCI_DEFAULT) != OCI_SUCCESS)
+		{
+			printf("Application error, ExecuteExportJobErrorTracking function - unable to prepare getJobName statement.\n");
+			OCIHandleFree(hGetCountStmt, OCI_HTYPE_STMT);
+			free(getJobName);
+			return FALSE;
+		}
+
+		OCIDefine *OraCountDefine = NULL;
+		if (OCIDefineByPos(hGetCountStmt, &OraCountDefine, hOraErr, 1, (void *)&countFromJobs, (sword)sizeof(countFromJobs), SQLT_INT, (void *)0, (ub2 *)0, (ub2 *)0, OCI_DEFAULT) != OCI_SUCCESS)
+		{
+			printf("Application error, ExecuteExportJobErrorTracking function - unable to DefineByPos OraCountDefine.\n");
+			OCIHandleFree(hGetCountStmt, OCI_HTYPE_STMT);
+			free(getJobName);
+			return FALSE;
+		}
+		status = OCIStmtExecute(hOraSvcCtx, hGetCountStmt, hOraErr, (ub4)1, (ub4)0, (CONST OCISnapshot *) NULL, (OCISnapshot *)NULL, OCI_DEFAULT);
+		if (status != OCI_SUCCESS && status != OCI_SUCCESS_WITH_INFO)
+		{
+			printf("Application error, ExecuteExportJobErrorTracking function - unable to execute \"%s\"\n", getJobName);
+			checkerr(hOraErr, status);
+			OCIHandleFree(hGetCountStmt, OCI_HTYPE_STMT);
+			free(getJobName);
+			return FALSE;
+		}
+
+
+		OCIHandleFree(hGetCountStmt, OCI_HTYPE_STMT);
+	}
+
+	const char *plsql_export_schema_statement = NULL;
+
+	if (consistent)
+	{
+		plsql_export_schema_statement = "DECLARE\
+                    d1 NUMBER;\
+                      errors_count NUMBER;\
+                      ind NUMBER;\
+                      job_state VARCHAR2(100);\
+                      errle ku$_LogEntry;\
+                      sts ku$_Status;\
+                    BEGIN\
+                      d1 := DBMS_DATAPUMP.OPEN('EXPORT', 'SCHEMA', NULL, :job_name, 'COMPATIBLE');\
+                      DBMS_DATAPUMP.ADD_FILE(d1, :dumpfile, :oracle_dir, NULL, DBMS_DATAPUMP.KU$_FILE_TYPE_DUMP_FILE, 0);\
+                      DBMS_DATAPUMP.ADD_FILE(d1, :logfile, :oracle_dir, NULL, DBMS_DATAPUMP.KU$_FILE_TYPE_LOG_FILE, 1);\
+                      DBMS_DATAPUMP.METADATA_FILTER(d1, 'SCHEMA_EXPR', :schema);\
+                      DBMS_DATAPUMP.SET_PARAMETER(d1, 'FLASHBACK_TIME', 'TO_TIMESTAMP( TO_CHAR( SYSDATE) )');\
+                      DBMS_DATAPUMP.START_JOB(d1);\
+                      errors_count := 0;\
+		              job_state := 'UNDEFINED';\
+	                  while (job_state != 'COMPLETED') and (job_state != 'STOPPED') loop\
+		                dbms_datapump.get_status(d1, dbms_datapump.ku$_status_job_error, -1, job_state, sts);\
+	                    if (bitand(sts.mask, dbms_datapump.ku$_status_job_error) != 0)\
+		                  then\
+		                    errle := sts.error;\
+	                      else\
+		                    errle := null;\
+                        end if;\
+                        if errle is not null\
+                          then\
+                            ind := errle.FIRST;\
+                            while ind is not null loop\
+                              errors_count := errors_count + 1;\
+                              ind := errle.NEXT(ind);\
+                            end loop;\
+                        end if;\
+                      end loop;\
+                      :errors_count := errors_count;\
+                      DBMS_DATAPUMP.DETACH(d1);\
+                    END;";
+	}
+	else
+	{
+		plsql_export_schema_statement = "DECLARE\
+                    d1 NUMBER;\
+                      errors_count NUMBER;\
+                      ind NUMBER;\
+                      job_state VARCHAR2(100);\
+                      errle ku$_LogEntry;\
+                      sts ku$_Status;\
+                    BEGIN\
+                      d1 := DBMS_DATAPUMP.OPEN('EXPORT', 'SCHEMA', NULL, :job_name, 'COMPATIBLE');\
+                      DBMS_DATAPUMP.ADD_FILE(d1, :dumpfile, :oracle_dir, NULL, DBMS_DATAPUMP.KU$_FILE_TYPE_DUMP_FILE, 0);\
+                      DBMS_DATAPUMP.ADD_FILE(d1, :logfile, :oracle_dir, NULL, DBMS_DATAPUMP.KU$_FILE_TYPE_LOG_FILE, 1);\
+                      DBMS_DATAPUMP.METADATA_FILTER(d1, 'SCHEMA_EXPR', :schema);\
+                      DBMS_DATAPUMP.START_JOB(d1);\
+                      errors_count := 0;\
+		              job_state := 'UNDEFINED';\
+	                  while (job_state != 'COMPLETED') and (job_state != 'STOPPED') loop\
+		                dbms_datapump.get_status(d1, dbms_datapump.ku$_status_job_error, -1, job_state, sts);\
+	                    if (bitand(sts.mask, dbms_datapump.ku$_status_job_error) != 0)\
+		                  then\
+		                    errle := sts.error;\
+	                      else\
+		                    errle := null;\
+                        end if;\
+                        if errle is not null\
+                          then\
+                            ind := errle.FIRST;\
+                            while ind is not null loop\
+                              errors_count := errors_count + 1;\
+                              ind := errle.NEXT(ind);\
+                            end loop;\
+                        end if;\
+                      end loop;\
+                      :errors_count := errors_count;\
+                      DBMS_DATAPUMP.DETACH(d1);\
+                    END;";
+	}
+
+
+
+	OCIStmt *hOraPlsqlExpSchemaStatement = NULL;
+	if (OCIHandleAlloc((const void *)hOraEnv, (void **)&hOraPlsqlExpSchemaStatement, OCI_HTYPE_STMT, (size_t)0, (void **)0))
+	{
+		printf("Application error, ExecuteExportJobErrorTracking function - can not allocate hOraPlsqlExpSchemaStatement handle\n");
+		free(getJobName);
+		return FALSE;
+	}
+
+
+	if (OCIStmtPrepare(hOraPlsqlExpSchemaStatement, hOraErr, (const OraText *)plsql_export_schema_statement, (ub4)strlen(plsql_export_schema_statement), (ub4)OCI_NTV_SYNTAX, (ub4)OCI_DEFAULT) != OCI_SUCCESS)
+	{
+		printf("Application error, ExecuteExportJobErrorTracking function - unable to prepare plsql_export_schema_statement statement.\n");
+		OCIHandleFree(hOraPlsqlExpSchemaStatement, OCI_HTYPE_STMT);
+		free(getJobName);
+		return FALSE;
+	}
+
+	OCIBind  *bnd1p = NULL;
+	OCIBind  *bnd2p = NULL;
+	OCIBind  *bnd3p = NULL;
+	OCIBind  *bnd4p = NULL;
+	OCIBind  *bnd5p = NULL;
+	OCIBind  *bnd6p = NULL;
+	OCIBindByName(hOraPlsqlExpSchemaStatement, &bnd1p, hOraErr, (text *)":job_name", -1, (void *)jobname, (sb4)(strlen(jobname) + 1), SQLT_STR, (void *)0, (ub2 *)0, (ub2 *)0, (ub4)0, (ub4 *)0, OCI_DEFAULT);
+	OCIBindByName(hOraPlsqlExpSchemaStatement, &bnd2p, hOraErr, (text *)":dumpfile", -1, (void *)dumpfilenameutf8, (sb4)(strlen(dumpfilenameutf8) + 1), SQLT_STR, (void *)0, (ub2 *)0, (ub2 *)0, (ub4)0, (ub4 *)0, OCI_DEFAULT);
+	OCIBindByName(hOraPlsqlExpSchemaStatement, &bnd3p, hOraErr, (text *)":logfile", -1, (void *)logfilenameutf8, (sb4)(strlen(logfilenameutf8) + 1), SQLT_STR, (void *)0, (ub2 *)0, (ub2 *)0, (ub4)0, (ub4 *)0, OCI_DEFAULT);
+	OCIBindByName(hOraPlsqlExpSchemaStatement, &bnd4p, hOraErr, (text *)":oracle_dir", -1, (void *)oradirutf8, (sb4)(strlen(oradirutf8) + 1), SQLT_STR, (void *)0, (ub2 *)0, (ub2 *)0, (ub4)0, (ub4 *)0, OCI_DEFAULT);
+	OCIBindByName(hOraPlsqlExpSchemaStatement, &bnd5p, hOraErr, (text *)":schema", -1, (void *)schema_expression, (sb4)(strlen(schema_expression) + 1), SQLT_STR, (void *)0, (ub2 *)0, (ub2 *)0, (ub4)0, (ub4 *)0, OCI_DEFAULT);
+	OCIBindByName(hOraPlsqlExpSchemaStatement, &bnd6p, hOraErr, (text *)":errors_count", -1, (void *)errorCount, (sb4)sizeof(int), SQLT_INT, (void *)0, (ub2 *)0, (ub2 *)0, (ub4)0, (ub4 *)0, OCI_DEFAULT);
+
+
+	status = OCIStmtExecute(hOraSvcCtx, hOraPlsqlExpSchemaStatement, hOraErr, (ub4)1, (ub4)0, (CONST OCISnapshot *) NULL, (OCISnapshot *)NULL, OCI_DEFAULT);
+	if (status != OCI_SUCCESS && status != OCI_SUCCESS_WITH_INFO)
+	{
+		printf("Application error, ExecuteExportJobErrorTracking function - unable to execute datapump export statement, %s\n", schema_expression);
+		checkerr(hOraErr, status);
+		OCIHandleFree(hOraPlsqlExpSchemaStatement, OCI_HTYPE_STMT);
+		free(getJobName);
+		return FALSE;
+	}
+
+
+	OCIHandleFree(hOraPlsqlExpSchemaStatement, OCI_HTYPE_STMT);
+	free(getJobName);
+
+	return TRUE;
+}
+
+
 int IsDBLocal(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr)
 {
 	DWORD ClientStringSize = 64;

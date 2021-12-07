@@ -7,10 +7,14 @@
 
 #define USER_EXISTS 1
 #define USER_NOT_EXISTS 2
+
 #define NOT_PROCESSED 0
+
 #define EXPORT_COMPLETE 1
 #define EXPORT_ERROR 3
 #define EXPORT_RUNNING 4
+#define EXPORT_WARNING 5
+
 #define RECEIVE_COMPLETE 1
 #define RECEIVE_ERROR 3
 #define RECEIVE_RUNNING 4
@@ -36,7 +40,8 @@ typedef struct export_schema_row
 	char filename [256];
 	//Имя датапамп директории для дампа.
 	char datapumpDirName[32];
-	//Флаг состояния схемы - 0 - необработана (NOT_PROCESSED), EXPORT_COMPLETE - Экспорт завершен, USER_NOT_EXISTS - пользователя не существует, пропускаем, EXPORT_RUNNING - идет в настоящий момент, EXPORT_ERROR - ошибка экспорта.
+	//Флаг состояния схемы - 0 - необработана (NOT_PROCESSED), EXPORT_COMPLETE - Экспорт завершен, USER_NOT_EXISTS - пользователя не существует, пропускаем, 
+	//EXPORT_RUNNING - идет в настоящий момент, EXPORT_ERROR - ошибка экспорта, EXPORT_WARNING - предупреждения во время экспорта
 	int exportStatus;
 	//Флаг состояния получения - 0 - необработана, RECEIVE_RUNNING - идет получение, RECEIVE_COMPLETE - файлы получены, RECEIVE_ERROR - ошибка получения, RECEIVE_SKIP - пропущен
 	int receiveStatus;
@@ -76,6 +81,11 @@ int IsUserExists(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, cons
 //Эта версия функции отличается от подобной в datapumpexp тем, что здесь не запускается в отдельном потоке функция отслеживания прогресса экспорта.
 //мы просто запускаем экспорт и ждем его завершения
 int ExecuteExportJob(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, const char *schemautf8, const char *oradirutf8, const char *dumpfilenameutf8, const char *logfilenameutf8);
+
+//Эта версия функции ExecuteExportJob, в которой мы отслеживаем сообщения об ошибках.
+//Отдельный поток для отслеживания прогресса на запускается, мы просто запускаем экспорт и ждем его завершения. Флаг consistent для создания консистентного дампа
+int ExecuteExportJobErrorTracking(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr, const char *schemautf8, const char *oradirutf8, const char *dumpfilenameutf8, const char *logfilenameutf8,
+	int *errorCount, bool consistent);
 
 //Проверяет, расположен ли сервер на этом же компьютере, возвращает LOCALDB или REMOTEDB
 int IsDBLocal(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIError *hOraErr);

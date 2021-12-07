@@ -5,7 +5,7 @@
   iowin32.c
   OraFunctions.c
   parseCmdLine.c
-d:\programming\vsprojects\proddbbackup\proddbbackup\parsecmdline.c(24): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+d:\programming\vsprojects\proddbbackup\proddbbackup\parsecmdline.c(27): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
   prodDBbackup.c
   reportFunctions.c
   StringConvert.c

@@ -43,6 +43,7 @@ unsigned WINAPI ExportThread(void * ppArgs)
 	startTime = time(NULL);
 	char dumpname[256];
 	char logname[256];
+	int exportErrorsCount = 0;
 	
 	
 	long long i;
@@ -98,8 +99,10 @@ unsigned WINAPI ExportThread(void * ppArgs)
 		GetLocalTime(&exportThreadTimeStruct);
 		printf("%02d.%02d.%04d %02d:%02d:%02d [exportThread_%d] - Запускаем экспорт %s в каталог %s\n", exportThreadTimeStruct.wDay, exportThreadTimeStruct.wMonth, exportThreadTimeStruct.wYear,
 			exportThreadTimeStruct.wHour, exportThreadTimeStruct.wMinute, exportThreadTimeStruct.wSecond, ExpStr->threadNumber, (ExpStr->ExportList->pSchemaRows)[i].schema, (ExpStr->ExportList->pSchemaRows)[i].datapumpDirName);
-		if (!ExecuteExportJob(ExpStr->hOraSvcCtx, ExpStr->hOraEnv, ExpStr->hOraErr, 
-			(ExpStr->ExportList->pSchemaRows)[i].schema, (ExpStr->ExportList->pSchemaRows)[i].datapumpDirName, dumpname, logname))
+		//if (!ExecuteExportJob(ExpStr->hOraSvcCtx, ExpStr->hOraEnv, ExpStr->hOraErr, 
+		//	(ExpStr->ExportList->pSchemaRows)[i].schema, (ExpStr->ExportList->pSchemaRows)[i].datapumpDirName, dumpname, logname))
+		if (!ExecuteExportJobErrorTracking(ExpStr->hOraSvcCtx, ExpStr->hOraEnv, ExpStr->hOraErr,
+			(ExpStr->ExportList->pSchemaRows)[i].schema, (ExpStr->ExportList->pSchemaRows)[i].datapumpDirName, dumpname, logname, &exportErrorsCount, ExpStr->Consistent))
 		{
 			GetLocalTime(&exportThreadTimeStruct);
 			printf("%02d.%02d.%04d %02d:%02d:%02d [exportThread_%d] - Внимание! Ошибка экспорта схемы %s\n", exportThreadTimeStruct.wDay, exportThreadTimeStruct.wMonth, exportThreadTimeStruct.wYear,
@@ -111,7 +114,17 @@ unsigned WINAPI ExportThread(void * ppArgs)
 			
 		}
 
-		(ExpStr->ExportList->pSchemaRows)[i].exportStatus = EXPORT_COMPLETE;
+		if (exportErrorsCount)
+		{
+			(ExpStr->ExportList->pSchemaRows)[i].exportStatus = EXPORT_WARNING;
+			GetLocalTime(&exportThreadTimeStruct);
+			printf("%02d.%02d.%04d %02d:%02d:%02d [exportThread_%d] - Внимание! Экспорт схемы %s закончился с предупреждениями (%d шт.)\n", exportThreadTimeStruct.wDay, exportThreadTimeStruct.wMonth, exportThreadTimeStruct.wYear,
+				exportThreadTimeStruct.wHour, exportThreadTimeStruct.wMinute, exportThreadTimeStruct.wSecond, ExpStr->threadNumber, (ExpStr->ExportList->pSchemaRows)[i].schema, exportErrorsCount);
+		}
+		else
+		{
+			(ExpStr->ExportList->pSchemaRows)[i].exportStatus = EXPORT_COMPLETE;
+		}
 	}
 
 	endTime = time(NULL);
@@ -169,7 +182,7 @@ unsigned WINAPI RecieveThread(void * ppArgs)
 			LeaveCriticalSection(RecieveStr->ReceiveCriticalSection);
 			continue;
 		}
-		else if ((RecieveStr->ExportList->pSchemaRows)[i].exportStatus == EXPORT_COMPLETE && (RecieveStr->ExportList->pSchemaRows)[i].receiveStatus == NOT_PROCESSED)
+		else if (((RecieveStr->ExportList->pSchemaRows)[i].exportStatus == EXPORT_COMPLETE || (RecieveStr->ExportList->pSchemaRows)[i].exportStatus == EXPORT_WARNING) && (RecieveStr->ExportList->pSchemaRows)[i].receiveStatus == NOT_PROCESSED)
 		{
 			(RecieveStr->ExportList->pSchemaRows)[i].receiveStatus = RECEIVE_RUNNING;
 			GetLocalTime(&recieveThreadTimeStruct);
@@ -226,7 +239,7 @@ unsigned WINAPI RecieveThread(void * ppArgs)
 				recieveThreadTimeStruct.wHour, recieveThreadTimeStruct.wMinute, recieveThreadTimeStruct.wSecond, RecieveStr->threadNumber, (RecieveStr->ExportList->pSchemaRows)[i].schema);
 			continue;
 		}
-		else if ((RecieveStr->ExportList->pSchemaRows)[i].exportStatus == EXPORT_COMPLETE)
+		else if ((RecieveStr->ExportList->pSchemaRows)[i].exportStatus == EXPORT_COMPLETE || (RecieveStr->ExportList->pSchemaRows)[i].exportStatus == EXPORT_WARNING)
 		{
 			sprintf(dumpname, "%s.dmp", (RecieveStr->ExportList->pSchemaRows)[i].filename);
 			sprintf(logname, "%s.log", (RecieveStr->ExportList->pSchemaRows)[i].filename);

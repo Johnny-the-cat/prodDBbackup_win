@@ -12,6 +12,7 @@
   success:false,
   schemaTotalCount:30,
   backupSuccessCount:27,
+  exportWarnings:2,
   exportErrors:1,
   receiveErrors:1,
   deletedWhileBackup:1

@@ -1,16 +1,19 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
 #include <windows.h>
 
-bool parseCmdLine(int argc, char* argv[], char *login, char *pass, char *dblink, char **dumpdir, char **select,  char **jsonreportfile)
+bool parseCmdLine(int argc, char* argv[], char *login, char *pass, char *dblink, char **dumpdir, char **select,  char **jsonreportfile, bool *consistent)
 {
 	const char *usage = "Usage: prodDBbackup login/pass@dblink dumpdir=C:\\dir\\to\\backup [ schemaset=\"Select ....\" \
-jsonreportfile=C:\\path\\to\\file ]\n\
+jsonreportfile=C:\\path\\to\\file consistent=no|yes]\n\
+consistent is equivalent \"flashback_time=systimestamp\" option for expdp, \"no\" is default\n\
 for multithread export create PRODDBBACKUP_DIR_1, PRODDBBACKUP_DIR_2... directories on your DB server\n\
-prodDBbackup version - 1.2.2";
+prodDBbackup version - 1.3.0";
 
-	if (argc < 3 || argc > 5)
+	if (argc < 3 || argc > 6)
 	{
 		printf("%s\n", usage);
 		exit(EXIT_FAILURE);
@@ -77,6 +80,8 @@ prodDBbackup version - 1.2.2";
 
 	bool gotjsonreportfile = FALSE;
 
+	bool gotconsistent = FALSE;
+
 	for (i = 2; i < argc; i++)
 	{
 		if (strstr(argv[i], "dumpdir=") == argv[i])
@@ -136,6 +141,32 @@ prodDBbackup version - 1.2.2";
 			}
 		}
 
+		else if (strstr(argv[i], "consistent=") == argv[i])
+		{
+			if (gotconsistent == FALSE)
+			{
+				char tmpstr[5] = { 0 };
+				strncpy (tmpstr, argv[i] + (int)strlen("consistent="), 4);
+				int i;
+				for (i = 0; tmpstr[i] != 0; i++)
+				{
+					tmpstr[i] = tolower(tmpstr[i]);
+				}
+				if (strcmp (tmpstr, "yes") == 0)
+				{
+					*consistent = TRUE;
+					gotconsistent = TRUE;
+					continue;
+				}
+			}
+			else
+			{
+				printf("Argument \"consistent\" is alredy got\n");
+				printf("%s\n", usage);
+				exit(EXIT_FAILURE);
+			}
+		}
+
 		else
 		{
 			printf("Unknown argument\n");
@@ -155,6 +186,13 @@ prodDBbackup version - 1.2.2";
 	{
 		*select = "select username from dba_users where default_tablespace not like 'SYSTEM' and default_tablespace not like 'SYSAUX' and username not like '%_IMAGE' and username not like '%!_KO' ESCAPE '!' and account_status not like 'EXPIRED _ LOCKED' order by username";
 		gotselect = TRUE;
+	}
+
+	if (gotconsistent == FALSE)
+	{
+		//по-умолчанию консистентность отключена
+		*consistent = FALSE; 
+		gotconsistent = TRUE;
 	}
 
 	return TRUE;

@@ -10,7 +10,7 @@
 #include <process.h>
 #include "reportFunctions.h"
 
-bool parseCmdLine(int argc, char* argv[], char *login, char *pass, char *dblink, char **dumpdir, char **select,  char **jsonreportfile);
+bool parseCmdLine(int argc, char* argv[], char *login, char *pass, char *dblink, char **dumpdir, char **select, char **jsonreportfile, bool *consistent);
 
 int main(int argc, char* argv[])
 {
@@ -37,9 +37,11 @@ int main(int argc, char* argv[])
 	char *select = NULL;
 	//Полное имя JSON отчета, может содержать национальные символы, необходимо преобразование.
 	char *jsonreportfileACP = NULL;
+	//Флаг консистентности бекапа
+	bool consistent = FALSE;
 	
 	//Получаем необходимые данные из аргументов командной строки
-	parseCmdLine(argc, argv, login, pass, dblinkACP, &dumpdirACP, &select, &jsonreportfileACP);
+	parseCmdLine(argc, argv, login, pass, dblinkACP, &dumpdirACP, &select, &jsonreportfileACP, &consistent);
 
 	//printf("%s\n", dblinkACP);
 	//printf("%s\n", dumpdirACP);
@@ -96,6 +98,12 @@ int main(int argc, char* argv[])
 	printf("%02d.%02d.%04d %02d:%02d:%02d [mainThread] - Запрос для получения схем - %s\n", mainThreadTimeStruct.wDay, mainThreadTimeStruct.wMonth, mainThreadTimeStruct.wYear,
 		mainThreadTimeStruct.wHour, mainThreadTimeStruct.wMinute, mainThreadTimeStruct.wSecond, select);
 
+	if (consistent == TRUE)
+	{
+		GetLocalTime(&mainThreadTimeStruct);
+		printf("%02d.%02d.%04d %02d:%02d:%02d [mainThread] - Указана опция создания консистентного бекапа. Может понадобится увеличенный размер табличного пространства UNDO\n", mainThreadTimeStruct.wDay, mainThreadTimeStruct.wMonth, mainThreadTimeStruct.wYear,
+			mainThreadTimeStruct.wHour, mainThreadTimeStruct.wMinute, mainThreadTimeStruct.wSecond);
+	}
 	
 	GetLocalTime(&mainThreadTimeStruct);
 	printf("%02d.%02d.%04d %02d:%02d:%02d [mainThread] - Подключаем библиотеку oci.dll\n", mainThreadTimeStruct.wDay, mainThreadTimeStruct.wMonth, mainThreadTimeStruct.wYear, 
@@ -938,6 +946,7 @@ int main(int argc, char* argv[])
 		ExportStructs[i].threadNumber = i + 1;
 		ExportStructs[i].ExportCriticalSection = &ExportCriticalSection;
 		ExportStructs[i].CriticalError = &CriticalError;
+		ExportStructs[i].Consistent = consistent;
 
 		ExportThreadHandle[i] = (HANDLE)_beginthreadex(NULL, 0, ExportThread, ExportStructs + i, 0, NULL);
 	}

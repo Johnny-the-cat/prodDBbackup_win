@@ -10,6 +10,7 @@ typedef struct export_struct
 	int threadNumber;
 	CRITICAL_SECTION * ExportCriticalSection;
 	int * CriticalError;
+	bool Consistent;
 
 } EXPORT_STUCTURE, *P_EXPORT_STUCTURE;
 

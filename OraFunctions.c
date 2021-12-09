@@ -1182,7 +1182,7 @@ int ExecuteExportJobErrorTracking(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIErr
 	OCIStmt *hGetCountStmt = NULL;
 	for (job_name_counter = 1; countFromJobs == 1; job_name_counter++)
 	{
-		snprintf(jobname, 30, "OML_EXP_%s_%d", schemautf8, job_name_counter);
+		snprintf(jobname, 30, "PDB_EXP_%s_%d", schemautf8, job_name_counter);
 		sprintf(getJobName, "SELECT count(*) FROM dba_datapump_jobs where job_name LIKE '%s'", jobname);
 
 		hGetCountStmt = NULL;
@@ -1244,7 +1244,7 @@ int ExecuteExportJobErrorTracking(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIErr
                       errors_count := 0;\
 		              job_state := 'UNDEFINED';\
 	                  while (job_state != 'COMPLETED') and (job_state != 'STOPPED') loop\
-		                dbms_datapump.get_status(d1, dbms_datapump.ku$_status_job_error, -1, job_state, sts);\
+		                dbms_datapump.get_status(d1, dbms_datapump.ku$_status_job_error + dbms_datapump.ku$_status_job_status + dbms_datapump.ku$_status_wip, -1, job_state, sts);\
 	                    if (bitand(sts.mask, dbms_datapump.ku$_status_job_error) != 0)\
 		                  then\
 		                    errle := sts.error;\
@@ -1282,7 +1282,7 @@ int ExecuteExportJobErrorTracking(OCISvcCtx *hOraSvcCtx, OCIEnv *hOraEnv, OCIErr
                       errors_count := 0;\
 		              job_state := 'UNDEFINED';\
 	                  while (job_state != 'COMPLETED') and (job_state != 'STOPPED') loop\
-		                dbms_datapump.get_status(d1, dbms_datapump.ku$_status_job_error, -1, job_state, sts);\
+		                dbms_datapump.get_status(d1, dbms_datapump.ku$_status_job_error + dbms_datapump.ku$_status_job_status + dbms_datapump.ku$_status_wip, -1, job_state, sts);\
 	                    if (bitand(sts.mask, dbms_datapump.ku$_status_job_error) != 0)\
 		                  then\
 		                    errle := sts.error;\

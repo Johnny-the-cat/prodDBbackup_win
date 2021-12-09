@@ -7,11 +7,11 @@
 
 bool parseCmdLine(int argc, char* argv[], char *login, char *pass, char *dblink, char **dumpdir, char **select,  char **jsonreportfile, bool *consistent)
 {
-	const char *usage = "Usage: prodDBbackup login/pass@dblink dumpdir=C:\\dir\\to\\backup [ schemaset=\"Select ....\" \
+	const char *usage = "Usage: prodDBbackup login/pass@dblink dumpdir=C:\\dir\\to\\backup [schemaset=\"Select ....\" \
 jsonreportfile=C:\\path\\to\\file consistent=no|yes]\n\
 consistent is equivalent \"flashback_time=systimestamp\" option for expdp, \"no\" is default\n\
-for multithread export create PRODDBBACKUP_DIR_1, PRODDBBACKUP_DIR_2... directories on your DB server\n\
-prodDBbackup version - 1.3.0";
+For multithread export create PRODDBBACKUP_DIR_1, PRODDBBACKUP_DIR_2... directories on your DB server\n\
+prodDBbackup version - 1.3.1";
 
 	if (argc < 3 || argc > 6)
 	{

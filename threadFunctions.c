@@ -173,10 +173,21 @@ unsigned WINAPI RecieveThread(void * ppArgs)
 			LeaveCriticalSection(RecieveStr->ReceiveCriticalSection);
 			continue;
 		}
-		else if ((RecieveStr->ExportList->pSchemaRows)[i].exportStatus == EXPORT_ERROR || (RecieveStr->ExportList->pSchemaRows)[i].exportStatus == USER_NOT_EXISTS)
+		else if ((RecieveStr->ExportList->pSchemaRows)[i].exportStatus == EXPORT_ERROR)
 		{
+			(RecieveStr->ExportList->pSchemaRows)[i].receiveStatus = RECEIVE_SKIP;
 			GetLocalTime(&recieveThreadTimeStruct);
-			printf("%02d.%02d.%04d %02d:%02d:%02d [receiveThread_%d] - Ошибка экспорта схемы %s, либо пользователь уже удален\n", recieveThreadTimeStruct.wDay, recieveThreadTimeStruct.wMonth, recieveThreadTimeStruct.wYear,
+			printf("%02d.%02d.%04d %02d:%02d:%02d [receiveThread_%d] - Ошибка экспорта схемы %s, пропускаем\n", recieveThreadTimeStruct.wDay, recieveThreadTimeStruct.wMonth, recieveThreadTimeStruct.wYear,
+				recieveThreadTimeStruct.wHour, recieveThreadTimeStruct.wMinute, recieveThreadTimeStruct.wSecond, RecieveStr->threadNumber, (RecieveStr->ExportList->pSchemaRows)[i].schema);
+			//Если экспорт завершен и статус приема EXPORT_ERROR или USER_NOT_EXISTS, пропускаем
+			LeaveCriticalSection(RecieveStr->ReceiveCriticalSection);
+			continue;
+		}
+		else if ((RecieveStr->ExportList->pSchemaRows)[i].exportStatus == USER_NOT_EXISTS)
+		{
+			(RecieveStr->ExportList->pSchemaRows)[i].receiveStatus = RECEIVE_SKIP;
+			GetLocalTime(&recieveThreadTimeStruct);
+			printf("%02d.%02d.%04d %02d:%02d:%02d [receiveThread_%d] - Пользователь %s уже удален, пропускаем\n", recieveThreadTimeStruct.wDay, recieveThreadTimeStruct.wMonth, recieveThreadTimeStruct.wYear,
 				recieveThreadTimeStruct.wHour, recieveThreadTimeStruct.wMinute, recieveThreadTimeStruct.wSecond, RecieveStr->threadNumber, (RecieveStr->ExportList->pSchemaRows)[i].schema);
 			//Если экспорт завершен и статус приема EXPORT_ERROR или USER_NOT_EXISTS, пропускаем
 			LeaveCriticalSection(RecieveStr->ReceiveCriticalSection);

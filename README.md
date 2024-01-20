@@ -1,2 +1,8 @@
 # prodDBbackup
-Utility for mass backup of schemes from OracleDB. It works in two streams: the first one runs export tasks in the database one after the other, the second one takes dumps from the server, compressing them on the fly and packing them in zip, and cleans dumps on the Oracle server
+Utility for mass backup of schemes from OracleDB. Works in multithreaded mode: part of the streams are engaged in exporting data from the database, part is engaged in obtaining data saving in compressed form to disk
+The zlib library is used for compression - https://github.com/madler/zlib
+
+Usage: prodDBbackup login/pass@dblink dumpdir=C:\dir\to\backup [schemaset="Select ...." jsonreportfile=C:\path\to\file consistent=no|yes]
+schemaset is a request from the database that returns a set of schemes for backup (ex. select username from dba_users;)
+consistent is equivalent \"flashback_time=systimestamp\" option for expdp, "no" is default
+For multithread export create PRODDBBACKUP_DIR_1, PRODDBBACKUP_DIR_2... directories on your DB server

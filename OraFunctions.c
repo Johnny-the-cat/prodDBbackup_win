@@ -44,17 +44,20 @@
 
 //#define DEBUG_LOGGING
 
+//критическая секция для выделения и освобождения памяти в OCIEnv
+extern CRITICAL_SECTION OCIMemoryActionSection;
+
 pOCIEnvCreate OCIEnvCreate;
 
 pOCIEnvNlsCreate OCIEnvNlsCreate;
 
 pOCITerminate OCITerminate;
 
-pOCIHandleAlloc OCIHandleAlloc;
+pOCIHandleAlloc OCIHandleAllocMultithreadInsecure;
 
 pOCIServerAttach OCIServerAttach;
 
-pOCIAttrSet OCIAttrSet;
+pOCIAttrSet OCIAttrSetMultithreadInsecure;
 
 pOCISessionBegin OCISessionBegin;
 
@@ -72,7 +75,7 @@ pOCIBindByPos OCIBindByPos;
 
 pOCITransCommit OCITransCommit;
 
-pOCIHandleFree OCIHandleFree;
+pOCIHandleFree OCIHandleFreeMultithreadInsecure;
 
 pOCIServerDetach OCIServerDetach;
 
@@ -86,9 +89,9 @@ pOCIRawAssignBytes OCIRawAssignBytes;
 
 pOCILobFileSetName OCILobFileSetName;
 
-pOCIDescriptorAlloc OCIDescriptorAlloc;
+pOCIDescriptorAlloc OCIDescriptorAllocMultithreadInsecure;
 
-pOCIDescriptorFree OCIDescriptorFree;
+pOCIDescriptorFree OCIDescriptorFreeMultithreadInsecure;
 
 pOCILobFileOpen OCILobFileOpen;
 
@@ -143,9 +146,9 @@ bool LoadOciFunctions(HMODULE hOCIDll)
 	}
 	
 
-	OCIHandleAlloc = (pOCIHandleAlloc)GetProcAddress(hOCIDll,
+	OCIHandleAllocMultithreadInsecure = (pOCIHandleAlloc)GetProcAddress(hOCIDll,
 		"OCIHandleAlloc");
-	if (OCIHandleAlloc == NULL) {
+	if (OCIHandleAllocMultithreadInsecure == NULL) {
 #ifdef MESSAGEBOX_ERROR_OUTPUT
 		MessageBox(MainWindowHandle, L"LoadOciFunctions: can't load OCIHandleAlloc", L"Error", MB_OK | MB_ICONERROR);
 #endif
@@ -169,9 +172,9 @@ bool LoadOciFunctions(HMODULE hOCIDll)
 	}
 	
 	
-	OCIAttrSet = (pOCIAttrSet)GetProcAddress(hOCIDll,
+	OCIAttrSetMultithreadInsecure = (pOCIAttrSet)GetProcAddress(hOCIDll,
 		"OCIAttrSet");
-	if (OCIAttrSet == NULL) {
+	if (OCIAttrSetMultithreadInsecure == NULL) {
 #ifdef MESSAGEBOX_ERROR_OUTPUT
 		MessageBox(MainWindowHandle, L"LoadOciFunctions: can't load OCIAttrSet", L"Error", MB_OK | MB_ICONERROR);
 #endif
@@ -286,9 +289,9 @@ bool LoadOciFunctions(HMODULE hOCIDll)
 	}
 	
 	
-	OCIHandleFree = (pOCIHandleFree)GetProcAddress(hOCIDll,
+	OCIHandleFreeMultithreadInsecure = (pOCIHandleFree)GetProcAddress(hOCIDll,
 		"OCIHandleFree");
-	if (OCIHandleFree == NULL) {
+	if (OCIHandleFreeMultithreadInsecure == NULL) {
 #ifdef MESSAGEBOX_ERROR_OUTPUT
 		MessageBox(MainWindowHandle, L"LoadOciFunctions: can't load OCIHandleFree", L"Error", MB_OK | MB_ICONERROR);
 #endif
@@ -378,9 +381,9 @@ bool LoadOciFunctions(HMODULE hOCIDll)
 	
 
 	
-	OCIDescriptorAlloc = (pOCIDescriptorAlloc)GetProcAddress(hOCIDll,
+	OCIDescriptorAllocMultithreadInsecure = (pOCIDescriptorAlloc)GetProcAddress(hOCIDll,
 		"OCIDescriptorAlloc");
-	if (OCIDescriptorAlloc == NULL) {
+	if (OCIDescriptorAllocMultithreadInsecure == NULL) {
 #ifdef MESSAGEBOX_ERROR_OUTPUT
 		MessageBox(MainWindowHandle, L"LoadOciFunctions: can't load OCIDescriptorAlloc", L"Error", MB_OK | MB_ICONERROR);
 #endif
@@ -391,9 +394,9 @@ bool LoadOciFunctions(HMODULE hOCIDll)
 	}
 	
 	
-	OCIDescriptorFree = (pOCIDescriptorFree)GetProcAddress(hOCIDll,
+	OCIDescriptorFreeMultithreadInsecure = (pOCIDescriptorFree)GetProcAddress(hOCIDll,
 		"OCIDescriptorFree");
-	if (OCIDescriptorFree == NULL) {
+	if (OCIDescriptorFreeMultithreadInsecure == NULL) {
 #ifdef MESSAGEBOX_ERROR_OUTPUT
 		MessageBox(MainWindowHandle, L"LoadOciFunctions: can't load OCIDescriptorFree", L"Error", MB_OK | MB_ICONERROR);
 #endif
@@ -553,6 +556,67 @@ void checkerr(OCIError *errhp, sword status)
 		break;
 	}
 }
+
+//обертка над родным OCIHandleAlloc с заходом и выходом из Critical Section для потокобезопасности
+sword OCIHandleAlloc(const void *parenth, void **hndlpp, ub4 type, size_t xtramem_sz, void **usrmempp)
+{
+	sword retVal = 0;
+
+	EnterCriticalSection(&OCIMemoryActionSection);
+	retVal = OCIHandleAllocMultithreadInsecure(parenth, hndlpp, type, xtramem_sz, usrmempp);
+	LeaveCriticalSection(&OCIMemoryActionSection);
+
+	return retVal;
+}
+
+//обертка над родным OCIAttrSet с заходом и выходом из Critical Section для потокобезопасности
+sword OCIAttrSet(void *trgthndlp, ub4 trghndltyp, void *attributep, ub4 size, ub4 attrtype, OCIError *errhp)
+{
+	sword retVal = 0;
+
+	EnterCriticalSection(&OCIMemoryActionSection);
+	retVal = OCIAttrSetMultithreadInsecure(trgthndlp, trghndltyp, attributep, size, attrtype, errhp);
+	LeaveCriticalSection(&OCIMemoryActionSection);
+
+	return retVal;
+}
+
+//обертка над родным OCIHandleFree с заходом и выходом из Critical Section для потокобезопасности
+sword OCIHandleFree(void *hndlp, ub4 type)
+{
+	sword retVal = 0;
+
+	EnterCriticalSection(&OCIMemoryActionSection);
+	retVal = OCIHandleFreeMultithreadInsecure(hndlp, type);
+	LeaveCriticalSection(&OCIMemoryActionSection);
+
+	return retVal;
+}
+
+//обертка над родным OCIDescriptorAlloc с заходом и выходом из Critical Section для потокобезопасности
+sword OCIDescriptorAlloc(const void *parenth, void **descpp, ub4 type, size_t xtramem_sz, void **usrmempp)
+{
+	sword retVal = 0;
+
+	EnterCriticalSection(&OCIMemoryActionSection);
+	retVal = OCIDescriptorAllocMultithreadInsecure(parenth, descpp, type, xtramem_sz, usrmempp);
+	LeaveCriticalSection(&OCIMemoryActionSection);
+
+	return retVal;
+}
+
+//обертка над родным OCIDescriptorFree с заходом и выходом из Critical Section для потокобезопасности
+sword OCIDescriptorFree(void *descp, ub4 type)
+{
+	sword retVal = 0;
+
+	EnterCriticalSection(&OCIMemoryActionSection);
+	retVal = OCIDescriptorFreeMultithreadInsecure(descp, type);
+	LeaveCriticalSection(&OCIMemoryActionSection);
+
+	return retVal;
+}
+
 
 
 /*Функция инициализирует окружение OCIEnv и OCIError*/

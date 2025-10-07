@@ -10,6 +10,10 @@
 #include <process.h>
 #include "reportFunctions.h"
 
+
+//критическая секция для выделения и освобождения памяти в OCIEnv
+CRITICAL_SECTION OCIMemoryActionSection;
+
 bool parseCmdLine(int argc, char* argv[], char *login, char *pass, char *dblink, char **dumpdir, char **select, char **jsonreportfile, bool *consistent);
 
 int main(int argc, char* argv[])
@@ -50,7 +54,11 @@ int main(int argc, char* argv[])
 	//	printf("jsonreportfileACP - %s\n", jsonreportfileACP);
 	//}
 	
-	
+	//инициализируем критическую секцию для сериализации операций с памятью в окружении OCI
+	if (!InitializeCriticalSectionAndSpinCount(&OCIMemoryActionSection, 4000))
+	{
+		return (EXIT_FAILURE);
+	}
 	
 	//-------------------Секция конвертации строк, содержащих национальные символы в строки UTF-8
 
@@ -985,6 +993,8 @@ int main(int argc, char* argv[])
 	
 	DeleteCriticalSection(&ExportCriticalSection);
 	DeleteCriticalSection(&ReceiveCriticalSection);
+
+	DeleteCriticalSection(&OCIMemoryActionSection);
 	
 	//GetLocalTime(&mainThreadTimeStruct);
 	//printf("%02d.%02d.%04d %02d:%02d:%02d [mainThread] - Закрываем сессию для главного потока\n", mainThreadTimeStruct.wDay, mainThreadTimeStruct.wMonth, mainThreadTimeStruct.wYear,

@@ -11,7 +11,7 @@ bool parseCmdLine(int argc, char* argv[], char *login, char *pass, char *dblink,
 jsonreportfile=C:\\path\\to\\file consistent=no|yes]\n\
 consistent is equivalent \"flashback_time=systimestamp\" option for expdp, \"no\" is default\n\
 For multithread export create PRODDBBACKUP_DIR_1, PRODDBBACKUP_DIR_2... directories on your DB server\n\
-prodDBbackup version - 1.3.3";
+prodDBbackup version - 1.3.5";
 
 	if (argc < 3 || argc > 6)
 	{

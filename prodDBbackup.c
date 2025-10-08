@@ -461,10 +461,51 @@ int main(int argc, char* argv[])
 
 	}
 
-
+	//---------------------------------------Хендлы для потоков Экспорта---------------------------------------
 	//GetLocalTime(&mainThreadTimeStruct);
 	//printf("%02d.%02d.%04d %02d:%02d:%02d [mainThread] - Выделяем память для массива указателей hOraServer для потоков экспорта\n", mainThreadTimeStruct.wDay, mainThreadTimeStruct.wMonth, mainThreadTimeStruct.wYear,
 	//	mainThreadTimeStruct.wHour, mainThreadTimeStruct.wMinute, mainThreadTimeStruct.wSecond);
+
+	////Память для указателей OCIEnv для потока получения файлов
+	OCIEnv **hOraEnvExportThread = (OCIEnv **)malloc((size_t)ExportThreadsCount * sizeof(OCIEnv *));
+	if (hOraEnvExportThread == NULL)
+	{
+		GetLocalTime(&mainThreadTimeStruct);
+		printf("%02d.%02d.%04d %02d:%02d:%02d [mainThread] - Не получается выделить память для массива указателей hOraEnv для потоков экспорта. Освобождаем ресурсы и завершаем работу приложения\n", mainThreadTimeStruct.wDay, mainThreadTimeStruct.wMonth, mainThreadTimeStruct.wYear,
+			mainThreadTimeStruct.wHour, mainThreadTimeStruct.wMinute, mainThreadTimeStruct.wSecond);
+
+		CloseSession(hOraErr, hOraServerMainThread, hOraSvcCtxMainThread, hOraSessionMainThread);
+		CloseOraEnvironment(hOraEnv, hOraErr);
+		FreeLibrary(hOCIDll);
+		free(dblink);
+		free(dumpdir);
+		free(listSchemaToExport->pSchemaRows);
+		free(listSchemaToExport);
+		free(DatapumpDirList);
+		return EXIT_FAILURE;
+	}
+	memset(hOraEnvExportThread, 0, (size_t)ExportThreadsCount * sizeof(OCIEnv *));
+
+	//Память для указателей OCIError для потока получения файлов
+	OCIError **hOraErrExportThread = (OCIError **)malloc((size_t)ExportThreadsCount * sizeof(OCIError *));
+	if (hOraErrExportThread == NULL)
+	{
+		GetLocalTime(&mainThreadTimeStruct);
+		printf("%02d.%02d.%04d %02d:%02d:%02d [mainThread] - Не получается выделить память для массива указателей hOraError для потоков экспорта. Освобождаем ресурсы и завершаем работу приложения\n", mainThreadTimeStruct.wDay, mainThreadTimeStruct.wMonth, mainThreadTimeStruct.wYear,
+			mainThreadTimeStruct.wHour, mainThreadTimeStruct.wMinute, mainThreadTimeStruct.wSecond);
+
+		CloseSession(hOraErr, hOraServerMainThread, hOraSvcCtxMainThread, hOraSessionMainThread);
+		CloseOraEnvironment(hOraEnv, hOraErr);
+		FreeLibrary(hOCIDll);
+		free(dblink);
+		free(dumpdir);
+		free(listSchemaToExport->pSchemaRows);
+		free(listSchemaToExport);
+		free(DatapumpDirList);
+		free(hOraEnvExportThread);
+		return EXIT_FAILURE;
+	}
+	memset(hOraErrExportThread, 0, (size_t)ExportThreadsCount * sizeof(OCIError *));
 
 	//Память для указателей OCIServer для создания сессии Оракл для потока получения файлов. Сессия закрывается вызовом функции CloseSession
 	OCIServer **hOraServerExportThread = (OCIServer **)malloc((size_t)ExportThreadsCount * sizeof(OCIServer *));
@@ -482,6 +523,8 @@ int main(int argc, char* argv[])
 		free(listSchemaToExport->pSchemaRows);
 		free(listSchemaToExport);
 		free(DatapumpDirList);
+		free(hOraEnvExportThread);
+		free(hOraErrExportThread);
 		return EXIT_FAILURE;
 	}
 	memset(hOraServerExportThread, 0, (size_t)ExportThreadsCount * sizeof(OCIServer *));
@@ -508,6 +551,8 @@ int main(int argc, char* argv[])
 		free(listSchemaToExport);
 		free(DatapumpDirList);
 		free(hOraServerExportThread);
+		free(hOraEnvExportThread);
+		free(hOraErrExportThread);
 		return EXIT_FAILURE;
 	}
 	memset(hOraSvcCtxExportThread, 0, (size_t)ExportThreadsCount * sizeof(OCISvcCtx *));
@@ -533,6 +578,8 @@ int main(int argc, char* argv[])
 		free(listSchemaToExport->pSchemaRows);
 		free(listSchemaToExport);
 		free(DatapumpDirList);
+		free(hOraEnvExportThread);
+		free(hOraErrExportThread);
 		free(hOraServerExportThread);
 		free(hOraSvcCtxExportThread);
 		return EXIT_FAILURE;
@@ -559,11 +606,61 @@ int main(int argc, char* argv[])
 		mainThreadTimeStruct.wHour, mainThreadTimeStruct.wMinute, mainThreadTimeStruct.wSecond, ReceiveThreadsCount);
 
 	
-	
+	//----------------------------------------------Хендлы для потоков приема--------------------------------------------------------------------------------
 	//GetLocalTime(&mainThreadTimeStruct);
 	//printf("%02d.%02d.%04d %02d:%02d:%02d [mainThread] - Выделяем память для массива указателей hOraServer для потоков получения\n", mainThreadTimeStruct.wDay, mainThreadTimeStruct.wMonth, mainThreadTimeStruct.wYear,
 	//	mainThreadTimeStruct.wHour, mainThreadTimeStruct.wMinute, mainThreadTimeStruct.wSecond);
-	
+	//Память для указателей OCIEnv для потока получения файлов. 
+	OCIEnv **hOraEnvRecieveThread = (OCIEnv **)malloc(ReceiveThreadsCount * sizeof(OCIEnv *));
+	if (hOraEnvRecieveThread == NULL)
+	{
+		GetLocalTime(&mainThreadTimeStruct);
+		printf("%02d.%02d.%04d %02d:%02d:%02d [mainThread] - Не получается выделить память для массива указателей hOraEnv для потоков получения. Освобождаем ресурсы и завершаем работу приложения\n", mainThreadTimeStruct.wDay, mainThreadTimeStruct.wMonth, mainThreadTimeStruct.wYear,
+			mainThreadTimeStruct.wHour, mainThreadTimeStruct.wMinute, mainThreadTimeStruct.wSecond);
+
+		CloseSession(hOraErr, hOraServerMainThread, hOraSvcCtxMainThread, hOraSessionMainThread);
+		CloseOraEnvironment(hOraEnv, hOraErr);
+		FreeLibrary(hOCIDll);
+		free(dblink);
+		free(dumpdir);
+		free(listSchemaToExport->pSchemaRows);
+		free(listSchemaToExport);
+		free(DatapumpDirList);
+		free(hOraEnvExportThread);
+		free(hOraErrExportThread);
+		free(hOraServerExportThread);
+		free(hOraSvcCtxExportThread);
+		free(hOraSessionExportThread);
+		return EXIT_FAILURE;
+	}
+	memset(hOraEnvRecieveThread, 0, ReceiveThreadsCount * sizeof(OCIEnv *));
+
+	//Память для указателей OCIEnv для потока получения файлов. 
+	OCIError **hOraErrRecieveThread = (OCIError **)malloc(ReceiveThreadsCount * sizeof(OCIError *));
+	if (hOraErrRecieveThread == NULL)
+	{
+		GetLocalTime(&mainThreadTimeStruct);
+		printf("%02d.%02d.%04d %02d:%02d:%02d [mainThread] - Не получается выделить память для массива указателей hOraErr для потоков получения. Освобождаем ресурсы и завершаем работу приложения\n", mainThreadTimeStruct.wDay, mainThreadTimeStruct.wMonth, mainThreadTimeStruct.wYear,
+			mainThreadTimeStruct.wHour, mainThreadTimeStruct.wMinute, mainThreadTimeStruct.wSecond);
+
+		CloseSession(hOraErr, hOraServerMainThread, hOraSvcCtxMainThread, hOraSessionMainThread);
+		CloseOraEnvironment(hOraEnv, hOraErr);
+		FreeLibrary(hOCIDll);
+		free(dblink);
+		free(dumpdir);
+		free(listSchemaToExport->pSchemaRows);
+		free(listSchemaToExport);
+		free(DatapumpDirList);
+		free(hOraEnvExportThread);
+		free(hOraErrExportThread);
+		free(hOraServerExportThread);
+		free(hOraSvcCtxExportThread);
+		free(hOraSessionExportThread);
+		free(hOraEnvRecieveThread);
+		return EXIT_FAILURE;
+	}
+	memset(hOraErrRecieveThread, 0, ReceiveThreadsCount * sizeof(OCIError *));
+
 	//Память для указателей OCIServer для создания сессии Оракл для потока получения файлов. Сессия закрывается вызовом функции CloseSession
 	OCIServer **hOraServerRecieveThread = (OCIServer **)malloc(ReceiveThreadsCount * sizeof(OCIServer *));
 	if (hOraServerRecieveThread == NULL)
@@ -580,9 +677,13 @@ int main(int argc, char* argv[])
 		free(listSchemaToExport->pSchemaRows);
 		free(listSchemaToExport);
 		free(DatapumpDirList);
+		free(hOraEnvExportThread);
+		free(hOraErrExportThread);
 		free(hOraServerExportThread);
 		free(hOraSvcCtxExportThread);
 		free(hOraSessionExportThread);
+		free(hOraEnvRecieveThread);
+		free(hOraErrRecieveThread);
 		return EXIT_FAILURE;
 	}
 	memset(hOraServerRecieveThread, 0, ReceiveThreadsCount * sizeof(OCIServer *));
@@ -608,9 +709,13 @@ int main(int argc, char* argv[])
 		free(listSchemaToExport->pSchemaRows);
 		free(listSchemaToExport);
 		free(DatapumpDirList);
+		free(hOraEnvExportThread);
+		free(hOraErrExportThread);
 		free(hOraServerExportThread);
 		free(hOraSvcCtxExportThread);
 		free(hOraSessionExportThread);
+		free(hOraEnvRecieveThread);
+		free(hOraErrRecieveThread);
 		free(hOraServerRecieveThread);
 		return EXIT_FAILURE;
 	}
@@ -637,9 +742,13 @@ int main(int argc, char* argv[])
 		free(listSchemaToExport->pSchemaRows);
 		free(listSchemaToExport);
 		free(DatapumpDirList);
+		free(hOraEnvExportThread);
+		free(hOraErrExportThread);
 		free(hOraServerExportThread);
 		free(hOraSvcCtxExportThread);
 		free(hOraSessionExportThread);
+		free(hOraEnvRecieveThread);
+		free(hOraErrRecieveThread);
 		free(hOraServerRecieveThread);
 		free(hOraSvcCtxRecieveThread);
 		return EXIT_FAILURE;
@@ -648,13 +757,54 @@ int main(int argc, char* argv[])
 
 
 	//---------------------------------------------------------Устанавливаем пул сессий для потоков экспорта----------------------------------------------------
+
+	int CreatedExportEnvCounter;
+	for (CreatedExportEnvCounter = 0; CreatedExportEnvCounter < ExportThreadsCount; CreatedExportEnvCounter++)
+	{
+		//GetLocalTime(&mainThreadTimeStruct);
+		//printf("%02d.%02d.%04d %02d:%02d:%02d [mainThread] - Создаем окружение %d для потока экспорта\n", mainThreadTimeStruct.wDay, mainThreadTimeStruct.wMonth, mainThreadTimeStruct.wYear,
+		//	mainThreadTimeStruct.wHour, mainThreadTimeStruct.wMinute, mainThreadTimeStruct.wSecond, EstablishedExportSessionCounter + 1);
+		if (!InitOraEnvironment(hOraEnvExportThread + CreatedExportEnvCounter, hOraErrExportThread + CreatedExportEnvCounter))
+		{
+			GetLocalTime(&mainThreadTimeStruct);
+			printf("%02d.%02d.%04d %02d:%02d:%02d [mainThread] - Не получается создать достаточно окружений для экспорта. Освобождаем ресурсы и завершаем работу приложения\n", mainThreadTimeStruct.wDay, mainThreadTimeStruct.wMonth, mainThreadTimeStruct.wYear,
+				mainThreadTimeStruct.wHour, mainThreadTimeStruct.wMinute, mainThreadTimeStruct.wSecond);
+
+			CloseSession(hOraErr, hOraServerMainThread, hOraSvcCtxMainThread, hOraSessionMainThread);
+			for (CreatedExportEnvCounter--; CreatedExportEnvCounter >= 0; CreatedExportEnvCounter--)
+			{
+				CloseOraEnvironment(*(hOraEnvExportThread + CreatedExportEnvCounter), *(hOraErrExportThread + CreatedExportEnvCounter));
+			}
+			CloseOraEnvironment(hOraEnv, hOraErr);
+			FreeLibrary(hOCIDll);
+			free(dblink);
+			free(dumpdir);
+			free(listSchemaToExport->pSchemaRows);
+			free(listSchemaToExport);
+			free(DatapumpDirList);
+			free(hOraEnvExportThread);
+			free(hOraErrExportThread);
+			free(hOraServerExportThread);
+			free(hOraSvcCtxExportThread);
+			free(hOraSessionExportThread);
+			free(hOraEnvRecieveThread);
+			free(hOraErrRecieveThread);
+			free(hOraServerRecieveThread);
+			free(hOraSvcCtxRecieveThread);
+			free(hOraSessionRecieveThread);
+			return EXIT_FAILURE;
+		}
+
+	}
+
 	int EstablishedExportSessionCounter;
 	for (EstablishedExportSessionCounter = 0; EstablishedExportSessionCounter < ExportThreadsCount; EstablishedExportSessionCounter++)
 	{
 		//GetLocalTime(&mainThreadTimeStruct);
 		//printf("%02d.%02d.%04d %02d:%02d:%02d [mainThread] - Создаем сессию %d для потока экспорта\n", mainThreadTimeStruct.wDay, mainThreadTimeStruct.wMonth, mainThreadTimeStruct.wYear,
 		//	mainThreadTimeStruct.wHour, mainThreadTimeStruct.wMinute, mainThreadTimeStruct.wSecond, EstablishedExportSessionCounter + 1);
-		if (!CreateSession(hOraEnv, hOraErr, hOraServerExportThread + EstablishedExportSessionCounter, hOraSvcCtxExportThread + EstablishedExportSessionCounter, hOraSessionExportThread + EstablishedExportSessionCounter,
+		if (!CreateSession(*(hOraEnvExportThread + EstablishedExportSessionCounter), *(hOraErrExportThread + EstablishedExportSessionCounter),
+			hOraServerExportThread + EstablishedExportSessionCounter, hOraSvcCtxExportThread + EstablishedExportSessionCounter, hOraSessionExportThread + EstablishedExportSessionCounter,
 			login, pass, dblink, !strcmp("SYS", tmpLogin)))
 		{
 			GetLocalTime(&mainThreadTimeStruct);
@@ -664,7 +814,11 @@ int main(int argc, char* argv[])
 			CloseSession(hOraErr, hOraServerMainThread, hOraSvcCtxMainThread, hOraSessionMainThread);
 			for (EstablishedExportSessionCounter--; EstablishedExportSessionCounter >= 0; EstablishedExportSessionCounter--)
 			{
-				CloseSession(hOraErr, *(hOraServerExportThread + EstablishedExportSessionCounter), *(hOraSvcCtxExportThread + EstablishedExportSessionCounter), *(hOraSessionExportThread + EstablishedExportSessionCounter));
+				CloseSession(*(hOraErrExportThread + EstablishedExportSessionCounter), *(hOraServerExportThread + EstablishedExportSessionCounter), *(hOraSvcCtxExportThread + EstablishedExportSessionCounter), *(hOraSessionExportThread + EstablishedExportSessionCounter));
+			}
+			for (CreatedExportEnvCounter--; CreatedExportEnvCounter >= 0; CreatedExportEnvCounter--)
+			{
+				CloseOraEnvironment(*(hOraEnvExportThread + CreatedExportEnvCounter), *(hOraErrExportThread + CreatedExportEnvCounter));
 			}
 			CloseOraEnvironment(hOraEnv, hOraErr);
 			FreeLibrary(hOCIDll);
@@ -673,9 +827,13 @@ int main(int argc, char* argv[])
 			free(listSchemaToExport->pSchemaRows);
 			free(listSchemaToExport);
 			free(DatapumpDirList);
+			free(hOraEnvExportThread);
+			free(hOraErrExportThread);
 			free(hOraServerExportThread);
 			free(hOraSvcCtxExportThread);
 			free(hOraSessionExportThread);
+			free(hOraEnvRecieveThread);
+			free(hOraErrRecieveThread);
 			free(hOraServerRecieveThread);
 			free(hOraSvcCtxRecieveThread);
 			free(hOraSessionRecieveThread);
@@ -687,13 +845,53 @@ int main(int argc, char* argv[])
 	
 
 	//----------------------------------------------------------Устанавливаем пул сессий для потоков получения----------------------------------
+	int CreatedRecieveEnvCounter;
+	for (CreatedRecieveEnvCounter = 0; CreatedRecieveEnvCounter < ReceiveThreadsCount; CreatedRecieveEnvCounter++)
+	{
+		//GetLocalTime(&mainThreadTimeStruct);
+		//printf("%02d.%02d.%04d %02d:%02d:%02d [mainThread] - Создаем окружение %d для потока экспорта\n", mainThreadTimeStruct.wDay, mainThreadTimeStruct.wMonth, mainThreadTimeStruct.wYear,
+		//	mainThreadTimeStruct.wHour, mainThreadTimeStruct.wMinute, mainThreadTimeStruct.wSecond, EstablishedExportSessionCounter + 1);
+		if (!InitOraEnvironment(hOraEnvRecieveThread + CreatedRecieveEnvCounter, hOraErrRecieveThread + CreatedRecieveEnvCounter))
+		{
+			GetLocalTime(&mainThreadTimeStruct);
+			printf("%02d.%02d.%04d %02d:%02d:%02d [mainThread] - Не получается создать достаточно окружений для приема. Освобождаем ресурсы и завершаем работу приложения\n", mainThreadTimeStruct.wDay, mainThreadTimeStruct.wMonth, mainThreadTimeStruct.wYear,
+				mainThreadTimeStruct.wHour, mainThreadTimeStruct.wMinute, mainThreadTimeStruct.wSecond);
+
+			CloseSession(hOraErr, hOraServerMainThread, hOraSvcCtxMainThread, hOraSessionMainThread);
+			for (CreatedRecieveEnvCounter--; CreatedRecieveEnvCounter >= 0; CreatedRecieveEnvCounter--)
+			{
+				CloseOraEnvironment(*(hOraEnvRecieveThread + CreatedRecieveEnvCounter), *(hOraErrRecieveThread + CreatedRecieveEnvCounter));
+			}
+			CloseOraEnvironment(hOraEnv, hOraErr);
+			FreeLibrary(hOCIDll);
+			free(dblink);
+			free(dumpdir);
+			free(listSchemaToExport->pSchemaRows);
+			free(listSchemaToExport);
+			free(DatapumpDirList);
+			free(hOraEnvExportThread);
+			free(hOraErrExportThread);
+			free(hOraServerExportThread);
+			free(hOraSvcCtxExportThread);
+			free(hOraSessionExportThread);
+			free(hOraEnvRecieveThread);
+			free(hOraErrRecieveThread);
+			free(hOraServerRecieveThread);
+			free(hOraSvcCtxRecieveThread);
+			free(hOraSessionRecieveThread);
+			return EXIT_FAILURE;
+		}
+
+	}
+
 	int EstablishedReceiveSessionCounter;
 	for (EstablishedReceiveSessionCounter = 0; EstablishedReceiveSessionCounter < ReceiveThreadsCount; EstablishedReceiveSessionCounter++)
 	{
 		//GetLocalTime(&mainThreadTimeStruct);
 		//printf("%02d.%02d.%04d %02d:%02d:%02d [mainThread] - Создаем сессию %d для потока получения файлов\n", mainThreadTimeStruct.wDay, mainThreadTimeStruct.wMonth, mainThreadTimeStruct.wYear,
 		//	mainThreadTimeStruct.wHour, mainThreadTimeStruct.wMinute, mainThreadTimeStruct.wSecond, EstablishedReceiveSessionCounter + 1);
-		if (!CreateSession(hOraEnv, hOraErr, hOraServerRecieveThread + EstablishedReceiveSessionCounter, hOraSvcCtxRecieveThread + EstablishedReceiveSessionCounter, hOraSessionRecieveThread + EstablishedReceiveSessionCounter,
+		if (!CreateSession(*(hOraEnvRecieveThread + EstablishedReceiveSessionCounter), *(hOraErrRecieveThread + EstablishedReceiveSessionCounter),
+			hOraServerRecieveThread + EstablishedReceiveSessionCounter, hOraSvcCtxRecieveThread + EstablishedReceiveSessionCounter, hOraSessionRecieveThread + EstablishedReceiveSessionCounter,
 			login, pass, dblink, !strcmp("SYS", tmpLogin)))
 		{
 			GetLocalTime(&mainThreadTimeStruct);
@@ -704,12 +902,20 @@ int main(int argc, char* argv[])
 
 			for (EstablishedExportSessionCounter--; EstablishedExportSessionCounter >= 0; EstablishedExportSessionCounter--)
 			{
-				CloseSession(hOraErr, *(hOraServerExportThread + EstablishedExportSessionCounter), *(hOraSvcCtxExportThread + EstablishedExportSessionCounter), *(hOraSessionExportThread + EstablishedExportSessionCounter));
+				CloseSession(*(hOraErrExportThread + EstablishedExportSessionCounter), *(hOraServerExportThread + EstablishedExportSessionCounter), *(hOraSvcCtxExportThread + EstablishedExportSessionCounter), *(hOraSessionExportThread + EstablishedExportSessionCounter));
+			}
+			for (CreatedExportEnvCounter--; CreatedExportEnvCounter >= 0; CreatedExportEnvCounter--)
+			{
+				CloseOraEnvironment(*(hOraEnvExportThread + CreatedExportEnvCounter), *(hOraErrExportThread + CreatedExportEnvCounter));
 			}
 
 			for (EstablishedReceiveSessionCounter--; EstablishedReceiveSessionCounter >= 0; EstablishedReceiveSessionCounter--)
 			{
-				CloseSession(hOraErr, *(hOraServerRecieveThread + EstablishedReceiveSessionCounter), *(hOraSvcCtxRecieveThread + EstablishedReceiveSessionCounter), *(hOraSessionRecieveThread + EstablishedReceiveSessionCounter));
+				CloseSession(*(hOraErrRecieveThread + EstablishedReceiveSessionCounter), *(hOraServerRecieveThread + EstablishedReceiveSessionCounter), *(hOraSvcCtxRecieveThread + EstablishedReceiveSessionCounter), *(hOraSessionRecieveThread + EstablishedReceiveSessionCounter));
+			}
+			for (CreatedRecieveEnvCounter--; CreatedRecieveEnvCounter >= 0; CreatedRecieveEnvCounter--)
+			{
+				CloseOraEnvironment(*(hOraEnvRecieveThread + CreatedRecieveEnvCounter), *(hOraErrRecieveThread + CreatedRecieveEnvCounter));
 			}
 
 			CloseOraEnvironment(hOraEnv, hOraErr);
@@ -719,9 +925,13 @@ int main(int argc, char* argv[])
 			free(listSchemaToExport->pSchemaRows);
 			free(listSchemaToExport);
 			free(DatapumpDirList);
+			free(hOraEnvExportThread);
+			free(hOraErrExportThread);
 			free(hOraServerExportThread);
 			free(hOraSvcCtxExportThread);
 			free(hOraSessionExportThread);
+			free(hOraEnvRecieveThread);
+			free(hOraErrRecieveThread);
 			free(hOraServerRecieveThread);
 			free(hOraSvcCtxRecieveThread);
 			free(hOraSessionRecieveThread);
@@ -744,12 +954,20 @@ int main(int argc, char* argv[])
 
 		for (EstablishedExportSessionCounter--; EstablishedExportSessionCounter >= 0; EstablishedExportSessionCounter--)
 		{
-			CloseSession(hOraErr, *(hOraServerExportThread + EstablishedExportSessionCounter), *(hOraSvcCtxExportThread + EstablishedExportSessionCounter), *(hOraSessionExportThread + EstablishedExportSessionCounter));
+			CloseSession(*(hOraErrExportThread + EstablishedExportSessionCounter), *(hOraServerExportThread + EstablishedExportSessionCounter), *(hOraSvcCtxExportThread + EstablishedExportSessionCounter), *(hOraSessionExportThread + EstablishedExportSessionCounter));
+		}
+		for (CreatedExportEnvCounter--; CreatedExportEnvCounter >= 0; CreatedExportEnvCounter--)
+		{
+			CloseOraEnvironment(*(hOraEnvExportThread + CreatedExportEnvCounter), *(hOraErrExportThread + CreatedExportEnvCounter));
 		}
 
 		for (EstablishedReceiveSessionCounter--; EstablishedReceiveSessionCounter >= 0; EstablishedReceiveSessionCounter--)
 		{
-			CloseSession(hOraErr, *(hOraServerRecieveThread + EstablishedReceiveSessionCounter), *(hOraSvcCtxRecieveThread + EstablishedReceiveSessionCounter), *(hOraSessionRecieveThread + EstablishedReceiveSessionCounter));
+			CloseSession(*(hOraErrRecieveThread + EstablishedReceiveSessionCounter), *(hOraServerRecieveThread + EstablishedReceiveSessionCounter), *(hOraSvcCtxRecieveThread + EstablishedReceiveSessionCounter), *(hOraSessionRecieveThread + EstablishedReceiveSessionCounter));
+		}
+		for (CreatedRecieveEnvCounter--; CreatedRecieveEnvCounter >= 0; CreatedRecieveEnvCounter--)
+		{
+			CloseOraEnvironment(*(hOraEnvRecieveThread + CreatedRecieveEnvCounter), *(hOraErrRecieveThread + CreatedRecieveEnvCounter));
 		}
 		
 		CloseOraEnvironment(hOraEnv, hOraErr);
@@ -759,9 +977,13 @@ int main(int argc, char* argv[])
 		free(listSchemaToExport->pSchemaRows);
 		free(listSchemaToExport);
 		free(DatapumpDirList);
+		free(hOraEnvExportThread);
+		free(hOraErrExportThread);
 		free(hOraServerExportThread);
 		free(hOraSvcCtxExportThread);
 		free(hOraSessionExportThread);
+		free(hOraEnvRecieveThread);
+		free(hOraErrRecieveThread);
 		free(hOraServerRecieveThread);
 		free(hOraSvcCtxRecieveThread);
 		free(hOraSessionRecieveThread);
@@ -780,12 +1002,20 @@ int main(int argc, char* argv[])
 
 		for (EstablishedExportSessionCounter--; EstablishedExportSessionCounter >= 0; EstablishedExportSessionCounter--)
 		{
-			CloseSession(hOraErr, *(hOraServerExportThread + EstablishedExportSessionCounter), *(hOraSvcCtxExportThread + EstablishedExportSessionCounter), *(hOraSessionExportThread + EstablishedExportSessionCounter));
+			CloseSession(*(hOraErrExportThread + EstablishedExportSessionCounter), *(hOraServerExportThread + EstablishedExportSessionCounter), *(hOraSvcCtxExportThread + EstablishedExportSessionCounter), *(hOraSessionExportThread + EstablishedExportSessionCounter));
+		}
+		for (CreatedExportEnvCounter--; CreatedExportEnvCounter >= 0; CreatedExportEnvCounter--)
+		{
+			CloseOraEnvironment(*(hOraEnvExportThread + CreatedExportEnvCounter), *(hOraErrExportThread + CreatedExportEnvCounter));
 		}
 
 		for (EstablishedReceiveSessionCounter--; EstablishedReceiveSessionCounter >= 0; EstablishedReceiveSessionCounter--)
 		{
-			CloseSession(hOraErr, *(hOraServerRecieveThread + EstablishedReceiveSessionCounter), *(hOraSvcCtxRecieveThread + EstablishedReceiveSessionCounter), *(hOraSessionRecieveThread + EstablishedReceiveSessionCounter));
+			CloseSession(*(hOraErrRecieveThread + EstablishedReceiveSessionCounter), *(hOraServerRecieveThread + EstablishedReceiveSessionCounter), *(hOraSvcCtxRecieveThread + EstablishedReceiveSessionCounter), *(hOraSessionRecieveThread + EstablishedReceiveSessionCounter));
+		}
+		for (CreatedRecieveEnvCounter--; CreatedRecieveEnvCounter >= 0; CreatedRecieveEnvCounter--)
+		{
+			CloseOraEnvironment(*(hOraEnvRecieveThread + CreatedRecieveEnvCounter), *(hOraErrRecieveThread + CreatedRecieveEnvCounter));
 		}
 
 		CloseOraEnvironment(hOraEnv, hOraErr);
@@ -795,9 +1025,13 @@ int main(int argc, char* argv[])
 		free(listSchemaToExport->pSchemaRows);
 		free(listSchemaToExport);
 		free(DatapumpDirList);
+		free(hOraEnvExportThread);
+		free(hOraErrExportThread);
 		free(hOraServerExportThread);
 		free(hOraSvcCtxExportThread);
 		free(hOraSessionExportThread);
+		free(hOraEnvRecieveThread);
+		free(hOraErrRecieveThread);
 		free(hOraServerRecieveThread);
 		free(hOraSvcCtxRecieveThread);
 		free(hOraSessionRecieveThread);
@@ -820,12 +1054,20 @@ int main(int argc, char* argv[])
 
 		for (EstablishedExportSessionCounter--; EstablishedExportSessionCounter >= 0; EstablishedExportSessionCounter--)
 		{
-			CloseSession(hOraErr, *(hOraServerExportThread + EstablishedExportSessionCounter), *(hOraSvcCtxExportThread + EstablishedExportSessionCounter), *(hOraSessionExportThread + EstablishedExportSessionCounter));
+			CloseSession(*(hOraErrExportThread + EstablishedExportSessionCounter), *(hOraServerExportThread + EstablishedExportSessionCounter), *(hOraSvcCtxExportThread + EstablishedExportSessionCounter), *(hOraSessionExportThread + EstablishedExportSessionCounter));
+		}
+		for (CreatedExportEnvCounter--; CreatedExportEnvCounter >= 0; CreatedExportEnvCounter--)
+		{
+			CloseOraEnvironment(*(hOraEnvExportThread + CreatedExportEnvCounter), *(hOraErrExportThread + CreatedExportEnvCounter));
 		}
 
 		for (EstablishedReceiveSessionCounter--; EstablishedReceiveSessionCounter >= 0; EstablishedReceiveSessionCounter--)
 		{
-			CloseSession(hOraErr, *(hOraServerRecieveThread + EstablishedReceiveSessionCounter), *(hOraSvcCtxRecieveThread + EstablishedReceiveSessionCounter), *(hOraSessionRecieveThread + EstablishedReceiveSessionCounter));
+			CloseSession(*(hOraErrRecieveThread + EstablishedReceiveSessionCounter), *(hOraServerRecieveThread + EstablishedReceiveSessionCounter), *(hOraSvcCtxRecieveThread + EstablishedReceiveSessionCounter), *(hOraSessionRecieveThread + EstablishedReceiveSessionCounter));
+		}
+		for (CreatedRecieveEnvCounter--; CreatedRecieveEnvCounter >= 0; CreatedRecieveEnvCounter--)
+		{
+			CloseOraEnvironment(*(hOraEnvRecieveThread + CreatedRecieveEnvCounter), *(hOraErrRecieveThread + CreatedRecieveEnvCounter));
 		}
 
 		CloseOraEnvironment(hOraEnv, hOraErr);
@@ -835,9 +1077,13 @@ int main(int argc, char* argv[])
 		free(listSchemaToExport->pSchemaRows);
 		free(listSchemaToExport);
 		free(DatapumpDirList);
+		free(hOraEnvExportThread);
+		free(hOraErrExportThread);
 		free(hOraServerExportThread);
 		free(hOraSvcCtxExportThread);
 		free(hOraSessionExportThread);
+		free(hOraEnvRecieveThread);
+		free(hOraErrRecieveThread);
 		free(hOraServerRecieveThread);
 		free(hOraSvcCtxRecieveThread);
 		free(hOraSessionRecieveThread);
@@ -858,12 +1104,20 @@ int main(int argc, char* argv[])
 
 		for (EstablishedExportSessionCounter--; EstablishedExportSessionCounter >= 0; EstablishedExportSessionCounter--)
 		{
-			CloseSession(hOraErr, *(hOraServerExportThread + EstablishedExportSessionCounter), *(hOraSvcCtxExportThread + EstablishedExportSessionCounter), *(hOraSessionExportThread + EstablishedExportSessionCounter));
+			CloseSession(*(hOraErrExportThread + EstablishedExportSessionCounter), *(hOraServerExportThread + EstablishedExportSessionCounter), *(hOraSvcCtxExportThread + EstablishedExportSessionCounter), *(hOraSessionExportThread + EstablishedExportSessionCounter));
+		}
+		for (CreatedExportEnvCounter--; CreatedExportEnvCounter >= 0; CreatedExportEnvCounter--)
+		{
+			CloseOraEnvironment(*(hOraEnvExportThread + CreatedExportEnvCounter), *(hOraErrExportThread + CreatedExportEnvCounter));
 		}
 
 		for (EstablishedReceiveSessionCounter--; EstablishedReceiveSessionCounter >= 0; EstablishedReceiveSessionCounter--)
 		{
-			CloseSession(hOraErr, *(hOraServerRecieveThread + EstablishedReceiveSessionCounter), *(hOraSvcCtxRecieveThread + EstablishedReceiveSessionCounter), *(hOraSessionRecieveThread + EstablishedReceiveSessionCounter));
+			CloseSession(*(hOraErrRecieveThread + EstablishedReceiveSessionCounter), *(hOraServerRecieveThread + EstablishedReceiveSessionCounter), *(hOraSvcCtxRecieveThread + EstablishedReceiveSessionCounter), *(hOraSessionRecieveThread + EstablishedReceiveSessionCounter));
+		}
+		for (CreatedRecieveEnvCounter--; CreatedRecieveEnvCounter >= 0; CreatedRecieveEnvCounter--)
+		{
+			CloseOraEnvironment(*(hOraEnvRecieveThread + CreatedRecieveEnvCounter), *(hOraErrRecieveThread + CreatedRecieveEnvCounter));
 		}
 
 		CloseOraEnvironment(hOraEnv, hOraErr);
@@ -873,9 +1127,13 @@ int main(int argc, char* argv[])
 		free(listSchemaToExport->pSchemaRows);
 		free(listSchemaToExport);
 		free(DatapumpDirList);
+		free(hOraEnvExportThread);
+		free(hOraErrExportThread);
 		free(hOraServerExportThread);
 		free(hOraSvcCtxExportThread);
 		free(hOraSessionExportThread);
+		free(hOraEnvRecieveThread);
+		free(hOraErrRecieveThread);
 		free(hOraServerRecieveThread);
 		free(hOraSvcCtxRecieveThread);
 		free(hOraSessionRecieveThread);
@@ -899,12 +1157,20 @@ int main(int argc, char* argv[])
 
 		for (EstablishedExportSessionCounter--; EstablishedExportSessionCounter >= 0; EstablishedExportSessionCounter--)
 		{
-			CloseSession(hOraErr, *(hOraServerExportThread + EstablishedExportSessionCounter), *(hOraSvcCtxExportThread + EstablishedExportSessionCounter), *(hOraSessionExportThread + EstablishedExportSessionCounter));
+			CloseSession(*(hOraErrExportThread + EstablishedExportSessionCounter), *(hOraServerExportThread + EstablishedExportSessionCounter), *(hOraSvcCtxExportThread + EstablishedExportSessionCounter), *(hOraSessionExportThread + EstablishedExportSessionCounter));
+		}
+		for (CreatedExportEnvCounter--; CreatedExportEnvCounter >= 0; CreatedExportEnvCounter--)
+		{
+			CloseOraEnvironment(*(hOraEnvExportThread + CreatedExportEnvCounter), *(hOraErrExportThread + CreatedExportEnvCounter));
 		}
 
 		for (EstablishedReceiveSessionCounter--; EstablishedReceiveSessionCounter >= 0; EstablishedReceiveSessionCounter--)
 		{
-			CloseSession(hOraErr, *(hOraServerRecieveThread + EstablishedReceiveSessionCounter), *(hOraSvcCtxRecieveThread + EstablishedReceiveSessionCounter), *(hOraSessionRecieveThread + EstablishedReceiveSessionCounter));
+			CloseSession(*(hOraErrRecieveThread + EstablishedReceiveSessionCounter), *(hOraServerRecieveThread + EstablishedReceiveSessionCounter), *(hOraSvcCtxRecieveThread + EstablishedReceiveSessionCounter), *(hOraSessionRecieveThread + EstablishedReceiveSessionCounter));
+		}
+		for (CreatedRecieveEnvCounter--; CreatedRecieveEnvCounter >= 0; CreatedRecieveEnvCounter--)
+		{
+			CloseOraEnvironment(*(hOraEnvRecieveThread + CreatedRecieveEnvCounter), *(hOraErrRecieveThread + CreatedRecieveEnvCounter));
 		}
 
 		CloseOraEnvironment(hOraEnv, hOraErr);
@@ -914,9 +1180,13 @@ int main(int argc, char* argv[])
 		free(listSchemaToExport->pSchemaRows);
 		free(listSchemaToExport);
 		free(DatapumpDirList);
+		free(hOraEnvExportThread);
+		free(hOraErrExportThread);
 		free(hOraServerExportThread);
 		free(hOraSvcCtxExportThread);
 		free(hOraSessionExportThread);
+		free(hOraEnvRecieveThread);
+		free(hOraErrRecieveThread);
 		free(hOraServerRecieveThread);
 		free(hOraSvcCtxRecieveThread);
 		free(hOraSessionRecieveThread);
@@ -940,8 +1210,8 @@ int main(int argc, char* argv[])
 	{
 		ExportStructs[i].ExportList = listSchemaToExport;
 		ExportStructs[i].hOraSvcCtx = *(hOraSvcCtxExportThread + i);
-		ExportStructs[i].hOraEnv = hOraEnv;
-		ExportStructs[i].hOraErr = hOraErr;
+		ExportStructs[i].hOraEnv = *(hOraEnvExportThread + i);
+		ExportStructs[i].hOraErr = *(hOraErrExportThread + i);
 		ExportStructs[i].datapumpDir = DatapumpDirList[i].datapumpDirName;
 		ExportStructs[i].threadNumber = i + 1;
 		ExportStructs[i].ExportCriticalSection = &ExportCriticalSection;
@@ -958,8 +1228,8 @@ int main(int argc, char* argv[])
 	{
 		ReceiveStructs[i].ExportList = listSchemaToExport;
 		ReceiveStructs[i].hOraSvcCtx = *(hOraSvcCtxRecieveThread + i);
-		ReceiveStructs[i].hOraEnv = hOraEnv;
-		ReceiveStructs[i].hOraErr = hOraErr;
+		ReceiveStructs[i].hOraEnv = *(hOraEnvRecieveThread + i);
+		ReceiveStructs[i].hOraErr = *(hOraErrRecieveThread + i);
 		ReceiveStructs[i].dumpDir = dumpdir;
 		ReceiveStructs[i].threadNumber = i + 1;
 		ReceiveStructs[i].ReceiveCriticalSection = &ReceiveCriticalSection;
@@ -997,8 +1267,13 @@ int main(int argc, char* argv[])
 	//	mainThreadTimeStruct.wHour, mainThreadTimeStruct.wMinute, mainThreadTimeStruct.wSecond);
 	for (EstablishedExportSessionCounter--; EstablishedExportSessionCounter >= 0; EstablishedExportSessionCounter--)
 	{
-		CloseSession(hOraErr, *(hOraServerExportThread + EstablishedExportSessionCounter), *(hOraSvcCtxExportThread + EstablishedExportSessionCounter), *(hOraSessionExportThread + EstablishedExportSessionCounter));
+		CloseSession(*(hOraErrExportThread + EstablishedExportSessionCounter), *(hOraServerExportThread + EstablishedExportSessionCounter), *(hOraSvcCtxExportThread + EstablishedExportSessionCounter), *(hOraSessionExportThread + EstablishedExportSessionCounter));
 	}
+	for (CreatedExportEnvCounter--; CreatedExportEnvCounter >= 0; CreatedExportEnvCounter--)
+	{
+		CloseOraEnvironment(*(hOraEnvExportThread + CreatedExportEnvCounter), *(hOraErrExportThread + CreatedExportEnvCounter));
+	}
+
 	
 
 	//GetLocalTime(&mainThreadTimeStruct);
@@ -1006,7 +1281,11 @@ int main(int argc, char* argv[])
 	//	mainThreadTimeStruct.wHour, mainThreadTimeStruct.wMinute, mainThreadTimeStruct.wSecond);
 	for (EstablishedReceiveSessionCounter--; EstablishedReceiveSessionCounter >= 0; EstablishedReceiveSessionCounter--)
 	{
-		CloseSession(hOraErr, *(hOraServerRecieveThread + EstablishedReceiveSessionCounter), *(hOraSvcCtxRecieveThread + EstablishedReceiveSessionCounter), *(hOraSessionRecieveThread + EstablishedReceiveSessionCounter));
+		CloseSession(*(hOraErrRecieveThread + EstablishedReceiveSessionCounter), *(hOraServerRecieveThread + EstablishedReceiveSessionCounter), *(hOraSvcCtxRecieveThread + EstablishedReceiveSessionCounter), *(hOraSessionRecieveThread + EstablishedReceiveSessionCounter));
+	}
+	for (CreatedRecieveEnvCounter--; CreatedRecieveEnvCounter >= 0; CreatedRecieveEnvCounter--)
+	{
+		CloseOraEnvironment(*(hOraEnvRecieveThread + CreatedRecieveEnvCounter), *(hOraErrRecieveThread + CreatedRecieveEnvCounter));
 	}
 
 
@@ -1040,9 +1319,13 @@ int main(int argc, char* argv[])
 	free(listSchemaToExport->pSchemaRows);
 	free(listSchemaToExport);
 	free(DatapumpDirList);
+	free(hOraEnvExportThread);
+	free(hOraErrExportThread);
 	free(hOraServerExportThread);
 	free(hOraSvcCtxExportThread);
 	free(hOraSessionExportThread);
+	free(hOraEnvRecieveThread);
+	free(hOraErrRecieveThread);
 	free(hOraServerRecieveThread);
 	free(hOraSvcCtxRecieveThread);
 	free(hOraSessionRecieveThread);
